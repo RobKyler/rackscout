@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Rack Scout – Lead Scanner</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: #2a2d35;
+    --accent: #00e5a0;
+    --accent2: #0066ff;
+    --warn: #ff6b35;
+    --text: #f0f1f3;
+    --muted: #7a7f8e;
+    --card-r: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; }
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,15,17,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .lead-count-pill {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 99px; padding: 4px 12px; font-size: 12px;
+    font-family: 'DM Mono', monospace; color: var(--muted);
+  }
+  .lead-count-pill b { color: var(--accent); }
+  .tabs {
+    display: flex; gap: 4px; padding: 12px 16px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 7px 16px; border-radius: 99px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); color: var(--muted);
+    background: transparent; transition: all .2s;
+  }
+  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .view { display: none; padding: 16px; padding-bottom: 100px; }
+  .view.active { display: block; }
+  .upload-zone {
+    border: 2px dashed var(--border); border-radius: var(--card-r);
+    padding: 40px 20px; text-align: center; cursor: pointer;
+    transition: all .25s; position: relative; overflow: hidden;
+    background: var(--surface);
+  }
+  .upload-zone.drag { border-color: var(--accent); background: rgba(0,229,160,0.05); }
+  .upload-zone:active { transform: scale(0.98); }
+  .upload-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(0,229,160,0.1); display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 16px; font-size: 24px;
+  }
+  .upload-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .upload-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  #file-input { display: none; }
+  .preview-strip {
+    display: flex; gap: 10px; overflow-x: auto; padding: 12px 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  .preview-strip::-webkit-scrollbar { display: none; }
+  .preview-thumb {
+    flex-shrink: 0; width: 72px; height: 72px; border-radius: 10px;
+    object-fit: cover; border: 2px solid var(--border);
+  }
+  .preview-wrap { position: relative; flex-shrink: 0; }
+  .preview-remove {
+    position: absolute; top: -6px; right: -6px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--warn); color: #fff; font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-weight: 700; border: 2px solid var(--bg);
+  }
+  .analyze-btn {
+    width: 100%; padding: 16px; border-radius: var(--card-r);
+    background: var(--accent); color: #000; font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 700; border: none; cursor: pointer;
+    margin-top: 14px; transition: all .2s;
+  }
+  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .analyze-btn:not(:disabled):active { transform: scale(0.97); }
+  .scanning-overlay {
+    background: var(--surface); border-radius: var(--card-r);
+    padding: 32px 20px; text-align: center; margin-top: 14px; display: none;
+  }
+  .scanning-overlay.active { display: block; }
+  .pulse-ring {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 3px solid var(--accent); margin: 0 auto 20px;
+    animation: pulse-scale 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse-scale {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.7; }
+  }
+  .scan-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .scan-sub { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .lead-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--card-r); margin-bottom: 12px; overflow: hidden;
+    animation: slide-up .3s ease both;
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .lead-card-header {
+    padding: 14px 16px; display: flex; align-items: center;
+    gap: 12px; cursor: pointer;
+  }
+  .lead-avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700;
+  }
+  .lead-name { font-size: 15px; font-weight: 700; }
+  .lead-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+  .lead-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
+  .status-hot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .status-warm { background: #ffcc00; box-shadow: 0 0 8px #ffcc00; }
+  .status-cold { background: var(--muted); }
+  .lead-card-body { padding: 0 16px 16px; border-top: 1px solid var(--border); display: none; }
+  .lead-card-body.open { display: block; padding-top: 14px; }
+  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .detail-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .detail-val { font-size: 13px; font-weight: 600; text-align: right; max-width: 60%; }
+  .last-msg-box {
+    background: var(--surface2); border-radius: 10px; padding: 10px 12px;
+    font-size: 13px; color: var(--muted); line-height: 1.5;
+    font-style: italic; margin: 10px 0; border-left: 3px solid var(--border);
+  }
+  .reply-box {
+    background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 10px; padding: 10px 12px; font-size: 13px;
+    line-height: 1.6; margin-top: 10px; color: var(--text);
+  }
+  .reply-label {
+    font-size: 10px; font-weight: 700; color: var(--accent);
+    letter-spacing: .08em; margin-bottom: 6px; font-family: 'DM Mono', monospace;
+  }
+  .copy-btn {
+    width: 100%; margin-top: 8px; padding: 10px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
+  }
+  .copy-btn:active { background: var(--accent); color: #000; }
+  .profit-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 99px; padding: 4px 10px;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    font-family: 'DM Mono', monospace; margin-top: 10px;
+  }
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 12px; text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 800; color: var(--accent); font-family: 'DM Mono', monospace; }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-state .e-icon { font-size: 48px; margin-bottom: 16px; opacity​​​​​​​​​​​​​​​​
