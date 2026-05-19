@@ -13,20 +13,25 @@ html,body{min-height:100%;background:#f0f2f5;color:#1c1e21;font-family:'Inter',s
 .fb-logo{width:34px;height:34px;background:#1877f2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;}
 .tn-title{font-size:16px;font-weight:700;color:#1877f2;}
 .tn-pill{background:#f0f2f5;border:1px solid #e4e6ea;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;color:#1c1e21;display:flex;align-items:center;gap:6px;}
+.tn-right{display:flex;align-items:center;gap:14px;}
 .tn-date{font-size:13px;color:#65676b;}
-.sync-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:#65676b;}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#e4e6ea;transition:background .3s;}
-.sync-dot.syncing{background:#f59e0b;animation:pulse-dot 1s ease-in-out infinite;}
-.sync-dot.synced{background:#16a34a;}
-.sync-dot.error{background:#ef4444;}
-@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.sync-badge{display:flex;align-items:center;gap:6px;background:#f0f2f5;border:1px solid #e4e6ea;border-radius:99px;padding:4px 12px;font-size:12px;font-weight:500;color:#65676b;transition:all .3s;}
+.sync-badge.syncing{background:#fff8e1;border-color:#fcd34d;color:#92400e;}
+.sync-badge.synced{background:#e7f9ee;border-color:#86efac;color:#0d5c2b;}
+.sync-badge.error{background:#fde8e8;border-color:#fca5a5;color:#8b1a1a;}
+.sync-badge.live{background:#e7f0ff;border-color:#93c5fd;color:#1540a0;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.sync-dot.pulse{animation:sdpulse 1.2s ease-in-out infinite;}
+@keyframes sdpulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 .page-tabs{background:#fff;border-bottom:1px solid #e4e6ea;padding:0 20px;display:flex;gap:0;}
 .ptab{padding:13px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#65676b;border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s;}
 .ptab:hover{color:#1c1e21;}
 .ptab.active{color:#1877f2;border-bottom-color:#1877f2;}
 .stats-bar{display:flex;gap:14px;padding:18px 20px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .stats-bar::-webkit-scrollbar{display:none;}
-.stat-card{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px 18px;min-width:150px;flex:1;display:flex;align-items:center;gap:13px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.stat-card{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px 18px;min-width:150px;flex:1;display:flex;align-items:center;gap:13px;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:transform .15s;}
+.stat-card.flash{animation:cardflash .5s ease;}
+@keyframes cardflash{0%,100%{background:#fff;}50%{background:#e7f0ff;}}
 .si{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .si-grey{background:#f0f2f5;}.si-green{background:#e7f9ee;}.si-amber{background:#fff8e1;}.si-blue{background:#e7f0ff;}.si-gold{background:#fffbe6;}
 .sc-label{font-size:12px;color:#65676b;margin-bottom:3px;font-weight:500;}
@@ -62,9 +67,11 @@ table{width:100%;border-collapse:collapse;min-width:780px;}
 thead tr{background:#f9fafb;border-bottom:1.5px solid #e4e6ea;}
 th{padding:11px 18px;font-size:11px;font-weight:700;color:#65676b;text-transform:uppercase;letter-spacing:.07em;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;}
 th:hover{color:#1c1e21;}
-td{padding:16px 18px;border-bottom:1px solid #f0f2f5;vertical-align:top;}
+td{padding:16px 18px;border-bottom:1px solid #f0f2f5;vertical-align:top;transition:background .3s;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#fafbff;}
+tr.new-row td{animation:rowflash .8s ease;}
+@keyframes rowflash{0%{background:#e7f0ff;}100%{background:transparent;}}
 .item-cell{display:flex;align-items:flex-start;gap:11px;}
 .item-ico{width:34px;height:34px;border-radius:8px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;}
 .item-name{font-size:14px;font-weight:600;color:#1c1e21;line-height:1.3;}
@@ -162,13 +169,13 @@ select.fi{cursor:pointer;}
 .bn-ico{font-size:20px;}
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#1c1e21;color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
 .toast.show{transform:translateX(-50%) translateY(0);}
+/* Live update banner */
+.live-banner{display:none;background:#e7f0ff;border:1px solid #93c5fd;border-radius:10px;margin:12px 20px 0;padding:10px 16px;font-size:13px;color:#1540a0;align-items:center;gap:10px;cursor:pointer;}
+.live-banner.show{display:flex;}
+.lb-dot{width:8px;height:8px;border-radius:50%;background:#1877f2;animation:sdpulse 1s infinite;flex-shrink:0;}
 .page{display:none;}.page.active{display:block;}
-/* Cloud banner */
-.cloud-banner{background:#e7f0ff;border:1px solid #bcd1fa;border-radius:10px;padding:12px 16px;margin:14px 20px 0;display:flex;align-items:center;gap:12px;font-size:13px;color:#1540a0;}
-.cloud-banner .cb-icon{font-size:20px;flex-shrink:0;}
-.cloud-banner strong{font-weight:600;}
 @media(max-width:640px){
-  .stats-bar,.table-area,.filter-panel,.subpage,.cloud-banner{margin-left:12px;margin-right:12px;}
+  .stats-bar,.table-area,.filter-panel,.subpage,.live-banner{margin-left:12px;margin-right:12px;}
   .stats-bar{padding-left:12px;padding-right:12px;}
   .topnav,.page-tabs{padding-left:12px;padding-right:12px;}
   .tn-date{display:none;}
@@ -177,28 +184,24 @@ select.fi{cursor:pointer;}
   .fgrid{grid-template-columns:1fr;}
   .ptab{padding:11px 12px;font-size:12px;}
   .search-wrap input{width:130px;}
+  .tn-pill{display:none;}
 }
 </style>
 </head>
 <body>
 
-<!-- TOP NAV -->
 <div class="topnav">
   <div class="tnl">
     <div class="fb-logo">f</div>
     <div class="tn-title">Marketplace</div>
   </div>
   <div class="tn-pill">📦 Meetup Tracker</div>
-  <div style="display:flex;align-items:center;gap:14px;">
-    <div class="sync-indicator">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-label">—</span>
-    </div>
+  <div class="tn-right">
+    <div class="sync-badge" id="sync-badge"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connecting…</span></div>
     <div class="tn-date" id="tn-date"></div>
   </div>
 </div>
 
-<!-- PAGE TABS -->
 <div class="page-tabs">
   <div class="ptab active" onclick="switchPage('dashboard')">📋 Dashboard</div>
   <div class="ptab" onclick="switchPage('scan')">📸 Scan</div>
@@ -209,12 +212,19 @@ select.fi{cursor:pointer;}
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
+  <!-- Live update banner -->
+  <div class="live-banner" id="live-banner" onclick="dismissBanner()">
+    <div class="lb-dot"></div>
+    <span id="live-banner-text">New data available — tap to refresh</span>
+    <span style="margin-left:auto;font-weight:700;">↻</span>
+  </div>
+
   <div class="stats-bar">
-    <div class="stat-card"><div class="si si-grey">📋</div><div><div class="sc-label">Total Meetups</div><div class="sc-value" id="s-total">0</div></div></div>
-    <div class="stat-card"><div class="si si-green">💰</div><div><div class="sc-label">Potential Revenue</div><div class="sc-value" id="s-revenue">$0</div></div></div>
-    <div class="stat-card"><div class="si si-amber">⏳</div><div><div class="sc-label">Pending</div><div class="sc-value" id="s-pending">0</div></div></div>
-    <div class="stat-card"><div class="si si-blue">📅</div><div><div class="sc-label">Scheduled</div><div class="sc-value" id="s-scheduled">0</div></div></div>
-    <div class="stat-card"><div class="si si-gold">🏆</div><div><div class="sc-label">Est. Profit</div><div class="sc-value green" id="s-profit">$0</div></div></div>
+    <div class="stat-card" id="sc-total"><div class="si si-grey">📋</div><div><div class="sc-label">Total Meetups</div><div class="sc-value" id="s-total">0</div></div></div>
+    <div class="stat-card" id="sc-revenue"><div class="si si-green">💰</div><div><div class="sc-label">Potential Revenue</div><div class="sc-value" id="s-revenue">$0</div></div></div>
+    <div class="stat-card" id="sc-pending"><div class="si si-amber">⏳</div><div><div class="sc-label">Pending</div><div class="sc-value" id="s-pending">0</div></div></div>
+    <div class="stat-card" id="sc-scheduled"><div class="si si-blue">📅</div><div><div class="sc-label">Scheduled</div><div class="sc-value" id="s-scheduled">0</div></div></div>
+    <div class="stat-card" id="sc-profit"><div class="si si-gold">🏆</div><div><div class="sc-label">Est. Profit</div><div class="sc-value green" id="s-profit">$0</div></div></div>
   </div>
 
   <div class="filter-panel">
@@ -263,7 +273,7 @@ select.fi{cursor:pointer;}
   <div class="subpage">
     <div class="sp-card">
       <div class="sp-title">Scan Marketplace Screenshots</div>
-      <div class="sp-sub">Upload conversation screenshots — Claude extracts buyer name, item, price, and saves to cloud automatically.</div>
+      <div class="sp-sub">Upload conversation screenshots — Claude extracts buyer details and saves to cloud in real time.</div>
       <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
         <div class="uz-ico">📸</div>
         <div class="uz-title">Tap to upload screenshots</div>
@@ -288,7 +298,7 @@ select.fi{cursor:pointer;}
   <div class="subpage">
     <div class="sp-card">
       <div class="sp-title">Schedule a Meetup</div>
-      <div class="sp-sub">Add pickup appointments. Synced to cloud instantly.</div>
+      <div class="sp-sub">Add pickup appointments — synced to cloud and all your devices instantly.</div>
       <div class="fgrid">
         <div class="fg"><label>Buyer Name</label><input class="fi" type="text" id="cal-name" placeholder="e.g. Natalie Wizner"></div>
         <div class="fg"><label>Date & Time</label><input class="fi" type="datetime-local" id="cal-datetime"></div>
@@ -301,7 +311,7 @@ select.fi{cursor:pointer;}
       </div>
     </div>
     <div style="font-size:13px;font-weight:700;color:#65676b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Upcoming Meetups</div>
-    <div id="ev-empty" style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;text-align:center;padding:32px;color:#bcc0c4;display:block;"><div style="font-size:28px;margin-bottom:8px">📆</div><div style="font-size:13px">No meetups scheduled yet</div></div>
+    <div id="ev-empty" style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;text-align:center;padding:32px;color:#bcc0c4;"><div style="font-size:28px;margin-bottom:8px">📆</div><div style="font-size:13px">No meetups scheduled yet</div></div>
     <div style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;overflow:hidden;display:none;" id="ev-list-wrap"><div id="ev-list"></div></div>
   </div>
 </div>
@@ -309,7 +319,7 @@ select.fi{cursor:pointer;}
 <!-- TEMPLATES -->
 <div id="page-templates" class="page">
   <div class="subpage">
-    <div style="font-size:13px;color:#65676b;margin-bottom:12px;">Tap any template to expand and copy</div>
+    <div style="font-size:13px;color:#65676b;margin-bottom:12px;">Tap any template to expand and copy — use <code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;">[NAME]</code> <code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;">[PRICE]</code> <code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;">[DAY]</code> <code style="background:#f0f2f5;padding:1px 5px;border-radius:4px;">[ADDRESS]</code></div>
     <div id="tmpl-list"></div>
     <button class="btn-cancel" onclick="openM('tmpl-modal')" style="width:100%;padding:12px;border-radius:10px;font-size:14px;margin-top:4px;">+ Add custom template</button>
   </div>
@@ -318,9 +328,9 @@ select.fi{cursor:pointer;}
 <!-- SAVE -->
 <div id="page-save" class="page">
   <div class="subpage">
-    <div class="sp-card" style="border-color:#bcd1fa;background:#f0f6ff;">
-      <div class="sp-title" style="color:#1877f2;">☁️ Cloud Sync Active</div>
-      <div class="sp-sub" style="margin-bottom:0;">All leads and events save to Supabase instantly. Your data is accessible from any device, any browser — just open this app and everything loads automatically.</div>
+    <div class="sp-card" style="border-color:#93c5fd;background:#eff6ff;">
+      <div class="sp-title" style="color:#1877f2;">☁️ Cloud Sync + Live Updates Active</div>
+      <div class="sp-sub" style="margin-bottom:0;">All data saves to Supabase instantly. Real-time updates push to every open device automatically — no refresh needed. Open this app on any phone or browser and your leads are always there.</div>
     </div>
     <div class="sp-card">
       <div class="sp-title">Export Data</div>
@@ -351,7 +361,7 @@ select.fi{cursor:pointer;}
   </div>
 </div>
 
-<!-- ADD/EDIT LEAD MODAL -->
+<!-- ADD/EDIT MODAL -->
 <div class="modal-overlay" id="lead-modal">
   <div class="modal">
     <div class="mhdr"><div class="mhdr-title" id="modal-title">Add Meetup</div><button class="mclose" onclick="closeM('lead-modal')">✕</button></div>
@@ -387,7 +397,7 @@ select.fi{cursor:pointer;}
   </div>
 </div>
 
-<!-- ADD TEMPLATE MODAL -->
+<!-- TEMPLATE MODAL -->
 <div class="modal-overlay" id="tmpl-modal">
   <div class="modal">
     <div class="mhdr"><div class="mhdr-title">New Template</div><button class="mclose" onclick="closeM('tmpl-modal')">✕</button></div>
@@ -412,7 +422,6 @@ select.fi{cursor:pointer;}
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="bnav">
   <div class="bnitems">
     <div class="bnitem active" onclick="switchPage('dashboard')"><div class="bn-ico">📋</div>Dashboard</div>
@@ -422,419 +431,442 @@ select.fi{cursor:pointer;}
     <div class="bnitem" onclick="switchPage('save')"><div class="bn-ico">💾</div>Save</div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Supabase config ──
+// ── Config ──
 const SUPA_URL = 'https://xpwyjtppowhonuzugaig.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhwd3lqdHBwb3dob251enVnYWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNDU2NjcsImV4cCI6MjA5NDcyMTY2N30.6RLVZcaxN73Brj-Jz-b2YTQWyrkO_5hKcmjCyhPfVTo';
-
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'apikey': SUPA_KEY,
-  'Authorization': `Bearer ${SUPA_KEY}`,
-  'Prefer': 'return=representation'
-};
-
-// ── Constants ──
-const COST = 20, SELL = 75, MARGIN = SELL - COST;
+const HEADERS = { 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Prefer':'return=representation' };
+const COST=20,SELL=75,MARGIN=SELL-COST;
 
 // ── State ──
-let leads = [];
-let events = [];
-let templates = getDefaultTmpls();
-let uploads = [];
-let aFilters = { status: 'all', item: 'all' };
-let sortK = 'status', sortD = 1;
+let leads=[], events=[], templates=defaultTmpls(), uploads=[];
+let aFilters={status:'all',item:'all'}, sortK='status', sortD=1;
+let realtimeSocket=null, pendingRealtimeUpdate=false;
 
-// ── Supabase helpers ──
-async function dbGet(table) {
-  setSyncState('syncing', 'Loading…');
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*&order=created_at.desc`, { headers: HEADERS });
-  if (!res.ok) { setSyncState('error', 'Load failed'); return []; }
-  const data = await res.json();
-  setSyncState('synced', 'Synced');
-  return data;
-}
-
-async function dbInsert(table, row) {
-  setSyncState('syncing', 'Saving…');
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
-    method: 'POST', headers: HEADERS, body: JSON.stringify(row)
-  });
-  if (!res.ok) { setSyncState('error', 'Save failed'); const e = await res.text(); console.error(e); return null; }
-  setSyncState('synced', 'Synced');
-  return await res.json();
-}
-
-async function dbUpdate(table, id, row) {
-  setSyncState('syncing', 'Saving…');
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH', headers: HEADERS, body: JSON.stringify(row)
-  });
-  if (!res.ok) { setSyncState('error', 'Save failed'); return null; }
-  setSyncState('synced', 'Synced');
-  return await res.json();
-}
-
-async function dbDelete(table, id) {
-  setSyncState('syncing', 'Deleting…');
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE', headers: { ...HEADERS, 'Prefer': 'return=minimal' }
-  });
-  if (!res.ok) { setSyncState('error', 'Delete failed'); return; }
-  setSyncState('synced', 'Synced');
-}
-
-async function dbDeleteAll(table) {
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=neq.0`, {
-    method: 'DELETE', headers: { ...HEADERS, 'Prefer': 'return=minimal' }
-  });
-  return res.ok;
-}
-
+// ── Sync UI ──
 function setSyncState(state, label) {
-  const dot = document.getElementById('sync-dot');
-  const lbl = document.getElementById('sync-label');
-  dot.className = 'sync-dot ' + state;
-  lbl.textContent = label;
+  const badge=document.getElementById('sync-badge');
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  badge.className='sync-badge '+state;
+  dot.className='sync-dot'+(state==='syncing'||state==='live'?' pulse':'');
+  lbl.textContent=label;
+}
+
+// ── REST helpers ──
+async function dbGet(table) {
+  const res=await fetch(`${SUPA_URL}/rest/v1/${table}?select=*&order=created_at.desc`,{headers:HEADERS});
+  if(!res.ok)throw new Error('Fetch failed');
+  return res.json();
+}
+async function dbInsert(table,row) {
+  const res=await fetch(`${SUPA_URL}/rest/v1/${table}`,{method:'POST',headers:HEADERS,body:JSON.stringify(row)});
+  if(!res.ok){const e=await res.text();console.error(e);return null;}
+  return res.json();
+}
+async function dbUpdate(table,id,row) {
+  const res=await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`,{method:'PATCH',headers:HEADERS,body:JSON.stringify(row)});
+  if(!res.ok)return null;
+  return res.json();
+}
+async function dbDelete(table,id) {
+  await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`,{method:'DELETE',headers:{...HEADERS,'Prefer':'return=minimal'}});
+}
+async function dbDeleteAll(table) {
+  await fetch(`${SUPA_URL}/rest/v1/${table}?id=gte.0`,{method:'DELETE',headers:{...HEADERS,'Prefer':'return=minimal'}});
+}
+
+// ── REALTIME via Supabase Realtime WebSocket ──
+function startRealtime() {
+  try {
+    const wsUrl=`wss://xpwyjtppowhonuzugaig.supabase.co/realtime/v1/websocket?apikey=${SUPA_KEY}&vsn=1.0.0`;
+    realtimeSocket=new WebSocket(wsUrl);
+
+    realtimeSocket.onopen=()=>{
+      setSyncState('live','Live ●');
+      // Subscribe to leads table
+      realtimeSocket.send(JSON.stringify({
+        topic:'realtime:public:leads',
+        event:'phx_join',
+        payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'leads'}]}},
+        ref:'1'
+      }));
+      // Subscribe to events table
+      realtimeSocket.send(JSON.stringify({
+        topic:'realtime:public:events',
+        event:'phx_join',
+        payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'*',schema:'public',table:'events'}]}},
+        ref:'2'
+      }));
+      // Heartbeat every 30s
+      setInterval(()=>{
+        if(realtimeSocket&&realtimeSocket.readyState===1){
+          realtimeSocket.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));
+        }
+      },30000);
+    };
+
+    realtimeSocket.onmessage=(e)=>{
+      try {
+        const msg=JSON.parse(e.data);
+        if(msg.event==='postgres_changes'||msg.payload?.data?.type){
+          const data=msg.payload?.data||msg.payload;
+          const changeType=data.type||data.eventType;
+          const table=data.table||msg.topic?.split(':')?.[2];
+          const record=data.record||data.new;
+          const oldRecord=data.old_record||data.old;
+
+          if(changeType&&table){
+            handleRealtimeChange(changeType,table,record,oldRecord);
+          }
+        }
+      } catch(err){ /* ignore parse errors */ }
+    };
+
+    realtimeSocket.onclose=()=>{
+      setSyncState('error','Reconnecting…');
+      setTimeout(startRealtime,3000); // auto-reconnect
+    };
+
+    realtimeSocket.onerror=()=>{
+      setSyncState('error','Connection error');
+    };
+  } catch(err) {
+    console.error('Realtime error:',err);
+    setSyncState('error','No live updates');
+  }
+}
+
+function handleRealtimeChange(type, table, record, oldRecord) {
+  // Only process changes from OTHER devices (not our own saves)
+  if(table==='leads') {
+    if(type==='INSERT'&&record) {
+      const exists=leads.find(l=>l.id==record.id);
+      if(!exists) {
+        leads.unshift(record);
+        flashStatCards();
+        renderTable(); renderStats();
+        showLiveBanner(`New lead added: ${record.name||'Unknown'}`);
+      }
+    } else if(type==='UPDATE'&&record) {
+      const idx=leads.findIndex(l=>l.id==record.id);
+      if(idx>=0) { leads[idx]=record; renderTable(); renderStats(); }
+    } else if(type==='DELETE'&&oldRecord) {
+      leads=leads.filter(l=>l.id!=oldRecord.id);
+      renderTable(); renderStats();
+    }
+  }
+  if(table==='events') {
+    if(type==='INSERT'&&record) {
+      const exists=events.find(e=>e.id==record.id);
+      if(!exists) {
+        events.push(record);
+        renderEvents();
+        showLiveBanner(`New meetup scheduled: ${record.name||'Unknown'}`);
+      }
+    } else if(type==='DELETE'&&oldRecord) {
+      events=events.filter(e=>e.id!=oldRecord.id);
+      renderEvents();
+    }
+  }
+}
+
+function showLiveBanner(msg) {
+  const banner=document.getElementById('live-banner');
+  const text=document.getElementById('live-banner-text');
+  text.textContent=msg+' — tap to acknowledge';
+  banner.classList.add('show');
+}
+function dismissBanner() {
+  document.getElementById('live-banner').classList.remove('show');
+}
+
+function flashStatCards() {
+  ['sc-total','sc-revenue','sc-pending','sc-scheduled','sc-profit'].forEach(id=>{
+    const card=document.getElementById(id);
+    if(card){card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),600);}
+  });
 }
 
 // ── Item emoji ──
-const itemEmoji = (name = '') => {
-  const n = name.toLowerCase();
-  if (n.includes('rack') || n.includes('shelf') || n.includes('shelv')) return '🗄️';
-  if (n.includes('sofa') || n.includes('couch')) return '🛋️';
-  if (n.includes('ping') || n.includes('table')) return '🏓';
-  if (n.includes('plant')) return '🪴';
-  if (n.includes('stone') || n.includes('tray')) return '🪨';
-  if (n.includes('bar')) return '🪑';
-  return '📦';
+const itemEmoji=(name='')=>{
+  const n=name.toLowerCase();
+  if(n.includes('rack')||n.includes('shelf')||n.includes('shelv'))return'🗄️';
+  if(n.includes('sofa')||n.includes('couch'))return'🛋️';
+  if(n.includes('ping')||n.includes('table'))return'🏓';
+  if(n.includes('plant'))return'🪴';
+  if(n.includes('stone')||n.includes('tray'))return'🪨';
+  if(n.includes('bar'))return'🪑';
+  return'📦';
 };
 
 // ── Default templates ──
-function getDefaultTmpls() {
-  return [
-    { id: 1, title: 'First response', cat: 'green', text: "Yes still available! A few people have reached out this week — first one who can do pickup in Woodland Hills gets it. What day works for you?" },
-    { id: 2, title: 'Bundle upsell', cat: 'blue', text: "Still available at $75. If you need more than one I can do $65 each — a lot of people grab 2–3 to organize a whole garage. Let me know!" },
-    { id: 3, title: 'Cold follow-up', cat: 'blue', text: "Hey [NAME]! Just checking back — I still have this available. Let me know if the timing works out or if you have any questions." },
-    { id: 4, title: 'Negotiation counter', cat: 'orange', text: "I appreciate the offer! Best I can do is [PRICE]. It's brand new and ready for pickup in Woodland Hills — would that work for you?" },
-    { id: 5, title: 'Meetup confirmation', cat: 'yellow', text: "Hey [NAME]! Just confirming we're still on for [DAY] pickup in Woodland Hills. I'll send the address when you're on your way. Cash works great!" },
-    { id: 6, title: 'Delivery offer', cat: 'green', text: "Yes available! I can also deliver within Woodland Hills / West Valley area for a small fee. Would that make it easier for you?" },
-    { id: 7, title: 'Price drop alert', cat: 'orange', text: "Hey! I just dropped the price on this — wanted to let you know since you saved the listing. Still interested? Happy to hold it for you." },
-    { id: 8, title: 'Closing message', cat: 'yellow', text: "Great news — it's yours! My address is [ADDRESS], Woodland Hills. See you [DAY]! Bring cash and I'll have it ready. Thanks!" }
-  ];
-}
+function defaultTmpls(){return[
+  {id:1,title:'First response',cat:'green',text:"Yes still available! A few people have reached out this week — first one who can do pickup in Woodland Hills gets it. What day works for you?"},
+  {id:2,title:'Bundle upsell',cat:'blue',text:"Still available at $75. If you need more than one I can do $65 each — a lot of people grab 2–3 to organize a whole garage. Let me know!"},
+  {id:3,title:'Cold follow-up',cat:'blue',text:"Hey [NAME]! Just checking back — I still have this available. Let me know if the timing works out or if you have any questions."},
+  {id:4,title:'Negotiation counter',cat:'orange',text:"I appreciate the offer! Best I can do is [PRICE]. It's brand new and ready for pickup in Woodland Hills — would that work for you?"},
+  {id:5,title:'Meetup confirmation',cat:'yellow',text:"Hey [NAME]! Just confirming we're still on for [DAY] pickup in Woodland Hills. I'll send the address when you're on your way. Cash works great!"},
+  {id:6,title:'Delivery offer',cat:'green',text:"Yes available! I can also deliver within Woodland Hills / West Valley area for a small fee. Would that make it easier for you?"},
+  {id:7,title:'Price drop alert',cat:'orange',text:"Hey! I just dropped the price on this — wanted to let you know since you saved the listing. Still interested? Happy to hold it for you."},
+  {id:8,title:'Closing message',cat:'yellow',text:"Great news — it's yours! My address is [ADDRESS], Woodland Hills. See you [DAY]! Bring cash and I'll have it ready. Thanks!"}
+];}
 
 // ── Stats ──
-function renderStats() {
-  const all = leads.length;
-  const pend = leads.filter(l => l.status === 'pending').length;
-  const sched = leads.filter(l => l.status === 'scheduled').length;
-  const sold = leads.filter(l => l.status === 'sold').length;
-  const canc = leads.filter(l => l.status === 'cancelled').length;
-  const rev = leads.filter(l => l.status !== 'cancelled').reduce((s, l) => {
-    const p = parseFloat((l.price || '').replace(/[^0-9.]/g, '')) || SELL;
-    return s + (l.units || 1) * p;
-  }, 0);
-  const profit = leads.filter(l => l.status === 'sold').reduce((s, l) => {
-    const p = parseFloat((l.price || '').replace(/[^0-9.]/g, '')) || SELL;
-    return s + (l.units || 1) * (p - COST);
-  }, 0);
-  $('s-total', all); $('s-revenue', '$' + rev.toFixed(2)); $('s-pending', pend);
-  $('s-scheduled', sched); $('s-profit', '$' + profit.toFixed(2));
-  $('fc-all', all); $('fc-pending', pend); $('fc-scheduled', sched);
-  $('fc-sold', sold); $('fc-cancelled', canc);
+function renderStats(){
+  const all=leads.length;
+  const pend=leads.filter(l=>l.status==='pending').length;
+  const sched=leads.filter(l=>l.status==='scheduled').length;
+  const sold=leads.filter(l=>l.status==='sold').length;
+  const canc=leads.filter(l=>l.status==='cancelled').length;
+  const rev=leads.filter(l=>l.status!=='cancelled').reduce((s,l)=>{
+    const p=parseFloat((l.price||'').replace(/[^0-9.]/g,''))||SELL;
+    return s+(l.units||1)*p;
+  },0);
+  const profit=leads.filter(l=>l.status==='sold').reduce((s,l)=>{
+    const p=parseFloat((l.price||'').replace(/[^0-9.]/g,''))||SELL;
+    return s+(l.units||1)*(p-COST);
+  },0);
+  $('s-total',all);$('s-revenue','$'+rev.toFixed(2));$('s-pending',pend);
+  $('s-scheduled',sched);$('s-profit','$'+profit.toFixed(2));
+  $('fc-all',all);$('fc-pending',pend);$('fc-scheduled',sched);
+  $('fc-sold',sold);$('fc-cancelled',canc);
   renderItemChips();
 }
+function $(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
 
-function $(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
-
-function renderItemChips() {
-  const row = document.getElementById('item-filter-row');
-  row.querySelectorAll('[data-f="item"]:not([data-v="all"])').forEach(c => c.remove());
-  [...new Set(leads.map(l => l.item).filter(Boolean))].forEach(item => {
-    const c = document.createElement('div');
-    c.className = 'chip' + (aFilters.item === item ? ' active' : '');
-    c.setAttribute('data-f', 'item'); c.setAttribute('data-v', item);
-    c.onclick = function () { setF('item', item, this); };
-    c.textContent = itemEmoji(item) + ' ' + item;
+function renderItemChips(){
+  const row=document.getElementById('item-filter-row');
+  row.querySelectorAll('[data-f="item"]:not([data-v="all"])').forEach(c=>c.remove());
+  [...new Set(leads.map(l=>l.item).filter(Boolean))].forEach(item=>{
+    const c=document.createElement('div');
+    c.className='chip'+(aFilters.item===item?' active':'');
+    c.setAttribute('data-f','item');c.setAttribute('data-v',item);
+    c.onclick=function(){setF('item',item,this);};
+    c.textContent=itemEmoji(item)+' '+item;
     row.appendChild(c);
   });
 }
 
 // ── Table ──
-function renderTable() {
-  const tbody = document.getElementById('leads-tbody');
-  const q = (document.getElementById('search-input') || {}).value?.toLowerCase() || '';
-  let rows = leads.filter(l => {
-    if (aFilters.status !== 'all' && l.status !== aFilters.status) return false;
-    if (aFilters.item !== 'all' && l.item !== aFilters.item) return false;
-    if (q && !(`${l.name || ''} ${l.item || ''} ${l.notes || ''} ${l.meetup || ''}`.toLowerCase().includes(q))) return false;
+function renderTable(){
+  const tbody=document.getElementById('leads-tbody');
+  const q=(document.getElementById('search-input')||{}).value?.toLowerCase()||'';
+  let rows=leads.filter(l=>{
+    if(aFilters.status!=='all'&&l.status!==aFilters.status)return false;
+    if(aFilters.item!=='all'&&l.item!==aFilters.item)return false;
+    if(q&&!(`${l.name||''} ${l.item||''} ${l.notes||''} ${l.meetup||''}`.toLowerCase().includes(q)))return false;
     return true;
   });
-  rows.sort((a, b) => {
-    const av = String(a[sortK] || '').toLowerCase(), bv = String(b[sortK] || '').toLowerCase();
-    return av < bv ? -sortD : av > bv ? sortD : 0;
+  rows.sort((a,b)=>{
+    const av=String(a[sortK]||'').toLowerCase(),bv=String(b[sortK]||'').toLowerCase();
+    return av<bv?-sortD:av>bv?sortD:0;
   });
-  $('showing-count', rows.length);
-  if (!rows.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><div class="eico">📭</div><div>No meetups found</div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = '';
-  rows.forEach(lead => {
-    const units = lead.units || 1;
-    const priceNum = parseFloat((lead.price || '').replace(/[^0-9.]/g, '')) || SELL;
-    const margin = priceNum - COST;
-    const priceStr = units > 1
-      ? `$${priceNum} × ${units} = $${priceNum * units} (+$${margin.toFixed(2)}/ea)`
-      : `$${priceNum} (+$${margin.toFixed(2)})`;
-    const badgeMap = {
-      pending: 'sb-pending',
-      scheduled: 'sb-scheduled',
-      sold: 'sb-sold',
-      cancelled: 'sb-cancelled'
-    };
-    const badgeLabelMap = {
-      pending: '⏳ Pending',
-      scheduled: '📅 Scheduled',
-      sold: '✅ Sold',
-      cancelled: '❌ Cancelled'
-    };
-    const bClass = badgeMap[lead.status || 'pending'] || 'sb-pending';
-    const bLabel = badgeLabelMap[lead.status || 'pending'] || '⏳ Pending';
-    const badge = `<span class="sbadge ${bClass}">${bLabel}</span>`;
-    const dtStr = lead.datetime
-      ? new Date(lead.datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-      : 'Time TBD';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><div class="item-cell">
-        <div class="item-ico">${itemEmoji(lead.item)}</div>
-        <div><div class="item-name">${lead.item || 'Storage Racks'}</div><div class="item-price">${priceStr}</div></div>
-      </div></td>
-      <td><div class="buyer-name">${lead.name || 'Unknown'}</div><div class="buyer-src">${lead.source || 'Facebook Marketplace'}</div></td>
-      <td><div class="meetup-main">${lead.meetup || 'TBD — buyer picking up'}</div><div class="meetup-time">${dtStr}</div></td>
+  $('showing-count',rows.length);
+  if(!rows.length){tbody.innerHTML=`<tr class="empty-row"><td colspan="6"><div class="eico">📭</div><div>No meetups found</div></td></tr>`;return;}
+  tbody.innerHTML='';
+  rows.forEach(lead=>{
+    const units=lead.units||1;
+    const pn=parseFloat((lead.price||'').replace(/[^0-9.]/g,''))||SELL;
+    const margin=pn-COST;
+    const priceStr=units>1?`$${pn} × ${units} = $${pn*units} (+$${margin.toFixed(2)}/ea)`:`$${pn} (+$${margin.toFixed(2)})`;
+    const bMap={pending:'sb-pending ⏳ Pending',scheduled:'sb-scheduled 📅 Scheduled',sold:'sb-sold ✅ Sold',cancelled:'sb-cancelled ❌ Cancelled'};
+    const parts=(bMap[lead.status||'pending']||'sb-pending ⏳ Pending').split(' ');
+    const bClass=parts[0],bLabel=parts.slice(1).join(' ');
+    const badge=`<span class="sbadge ${bClass}">${bLabel}</span>`;
+    const dtStr=lead.datetime?new Date(lead.datetime).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'Time TBD';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div class="item-cell"><div class="item-ico">${itemEmoji(lead.item)}</div><div><div class="item-name">${lead.item||'Storage Racks'}</div><div class="item-price">${priceStr}</div></div></div></td>
+      <td><div class="buyer-name">${lead.name||'Unknown'}</div><div class="buyer-src">${lead.source||'Facebook Marketplace'}</div></td>
+      <td><div class="meetup-main">${lead.meetup||'TBD — buyer picking up'}</div><div class="meetup-time">${dtStr}</div></td>
       <td>${badge}</td>
-      <td><div class="notes-cell">${lead.notes || '—'}</div></td>
-      <td><div class="act-btns">
-        <button class="act-btn" onclick="editLead(${lead.id})">Edit</button>
-        <button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button>
-      </div></td>`;
+      <td><div class="notes-cell">${lead.notes||'—'}</div></td>
+      <td><div class="act-btns"><button class="act-btn" onclick="editLead(${lead.id})">Edit</button><button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button></div></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function sortBy(k) { sortK === k ? sortD *= -1 : (sortK = k, sortD = 1); renderTable(); }
-function setF(type, val, el) {
-  aFilters[type] = val;
-  document.querySelectorAll(`[data-f="${type}"]`).forEach(c => c.classList.remove('active'));
-  el.classList.add('active'); renderTable();
+function sortBy(k){sortK===k?sortD*=-1:(sortK=k,sortD=1);renderTable();}
+function setF(type,val,el){
+  aFilters[type]=val;
+  document.querySelectorAll(`[data-f="${type}"]`).forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');renderTable();
 }
 
 // ── Lead Modal ──
-function openAddModal() {
-  document.getElementById('modal-title').textContent = 'Add Meetup';
-  document.getElementById('edit-id').value = '';
-  document.getElementById('m-name').value = '';
-  document.getElementById('m-source').value = 'Facebook Marketplace';
-  document.getElementById('m-item').value = 'Storage Racks';
-  document.getElementById('m-price').value = '$75';
-  document.getElementById('m-units').value = '1';
-  document.getElementById('m-status').value = 'pending';
-  document.getElementById('m-meetup').value = '';
-  document.getElementById('m-datetime').value = '';
-  document.getElementById('m-notes').value = '';
+function openAddModal(){
+  document.getElementById('modal-title').textContent='Add Meetup';
+  document.getElementById('edit-id').value='';
+  ['m-name','m-meetup','m-datetime','m-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-source').value='Facebook Marketplace';
+  document.getElementById('m-item').value='Storage Racks';
+  document.getElementById('m-price').value='$75';
+  document.getElementById('m-units').value='1';
+  document.getElementById('m-status').value='pending';
   openM('lead-modal');
 }
-
-function editLead(id) {
-  const l = leads.find(x => x.id === id); if (!l) return;
-  document.getElementById('modal-title').textContent = 'Edit Meetup';
-  document.getElementById('edit-id').value = id;
-  document.getElementById('m-name').value = l.name || '';
-  document.getElementById('m-source').value = l.source || 'Facebook Marketplace';
-  document.getElementById('m-item').value = l.item || 'Storage Racks';
-  document.getElementById('m-price').value = l.price || '$75';
-  document.getElementById('m-units').value = l.units || 1;
-  document.getElementById('m-status').value = l.status || 'pending';
-  document.getElementById('m-meetup').value = l.meetup || '';
-  document.getElementById('m-datetime').value = l.datetime || '';
-  document.getElementById('m-notes').value = l.notes || '';
+function editLead(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  document.getElementById('modal-title').textContent='Edit Meetup';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('m-name').value=l.name||'';
+  document.getElementById('m-source').value=l.source||'Facebook Marketplace';
+  document.getElementById('m-item').value=l.item||'Storage Racks';
+  document.getElementById('m-price').value=l.price||'$75';
+  document.getElementById('m-units').value=l.units||1;
+  document.getElementById('m-status').value=l.status||'pending';
+  document.getElementById('m-meetup').value=l.meetup||'';
+  document.getElementById('m-datetime').value=l.datetime||'';
+  document.getElementById('m-notes').value=l.notes||'';
   openM('lead-modal');
 }
-
-async function saveLead() {
-  const name = document.getElementById('m-name').value.trim();
-  if (!name) { toast('Buyer name required'); return; }
-  const eid = document.getElementById('edit-id').value;
-  const row = {
-    name,
-    source: document.getElementById('m-source').value,
-    item: document.getElementById('m-item').value || 'Storage Racks',
-    price: document.getElementById('m-price').value || '$75',
-    units: parseInt(document.getElementById('m-units').value) || 1,
-    status: document.getElementById('m-status').value,
-    meetup: document.getElementById('m-meetup').value,
-    datetime: document.getElementById('m-datetime').value,
-    notes: document.getElementById('m-notes').value,
-    added_at: new Date().toLocaleString()
-  };
-  if (eid) {
-    await dbUpdate('leads', eid, row);
-    const idx = leads.findIndex(l => l.id == eid);
-    if (idx >= 0) leads[idx] = { ...leads[idx], ...row };
+async function saveLead(){
+  const name=document.getElementById('m-name').value.trim();
+  if(!name){toast('Buyer name required');return;}
+  const eid=document.getElementById('edit-id').value;
+  const row={name,source:document.getElementById('m-source').value,item:document.getElementById('m-item').value||'Storage Racks',price:document.getElementById('m-price').value||'$75',units:parseInt(document.getElementById('m-units').value)||1,status:document.getElementById('m-status').value,meetup:document.getElementById('m-meetup').value,datetime:document.getElementById('m-datetime').value,notes:document.getElementById('m-notes').value,added_at:new Date().toLocaleString()};
+  setSyncState('syncing','Saving…');
+  if(eid){
+    await dbUpdate('leads',eid,row);
+    const idx=leads.findIndex(l=>l.id==eid);
+    if(idx>=0)leads[idx]={...leads[idx],...row};
     toast('✓ Meetup updated');
-  } else {
-    row.id = Date.now();
-    const saved = await dbInsert('leads', row);
-    if (saved) leads.unshift(saved[0] || row);
+  }else{
+    row.id=Date.now();
+    const saved=await dbInsert('leads',row);
+    leads.unshift(saved?(saved[0]||row):row);
     toast('✓ Meetup saved to cloud');
   }
-  renderTable(); renderStats(); closeM('lead-modal');
+  setSyncState('live','Live ●');
+  renderTable();renderStats();closeM('lead-modal');
 }
-
-async function deleteLead(id) {
-  await dbDelete('leads', id);
-  leads = leads.filter(l => l.id !== id);
-  renderTable(); renderStats(); toast('Meetup removed');
+async function deleteLead(id){
+  setSyncState('syncing','Deleting…');
+  await dbDelete('leads',id);
+  leads=leads.filter(l=>l.id!==id);
+  setSyncState('live','Live ●');
+  renderTable();renderStats();toast('Meetup removed');
 }
 
 // ── Scan ──
-document.getElementById('file-input').addEventListener('change', e => { handleFiles(Array.from(e.target.files)); e.target.value = ''; });
-const dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))); });
+document.getElementById('file-input').addEventListener('change',e=>{handleFiles(Array.from(e.target.files));e.target.value='';});
+const dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFiles(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/')));});
+function handleFiles(files){
+  uploads=[...uploads,...files];renderPreviews();
+  document.getElementById('analyze-btn').disabled=false;
+  document.getElementById('analyze-label').textContent=`Analyze ${uploads.length} screenshot${uploads.length>1?'s':''}`;
+}
+function renderPreviews(){
+  const s=document.getElementById('pstrip');s.style.display=uploads.length?'flex':'none';s.innerHTML='';
+  uploads.forEach((f,i)=>{const url=URL.createObjectURL(f);const w=document.createElement('div');w.className='pwrap';w.innerHTML=`<img class="pthumb" src="${url}"><div class="premove" onclick="rmFile(${i})">✕</div>`;s.appendChild(w);});
+}
+function rmFile(i){
+  uploads.splice(i,1);renderPreviews();
+  if(!uploads.length){document.getElementById('analyze-btn').disabled=true;document.getElementById('analyze-label').textContent='Select screenshots first';}
+  else document.getElementById('analyze-label').textContent=`Analyze ${uploads.length} screenshot${uploads.length>1?'s':''}`;
+}
+function b64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
 
-function handleFiles(files) {
-  uploads = [...uploads, ...files]; renderPreviews();
-  document.getElementById('analyze-btn').disabled = false;
-  document.getElementById('analyze-label').textContent = `Analyze ${uploads.length} screenshot${uploads.length > 1 ? 's' : ''}`;
-}
-function renderPreviews() {
-  const s = document.getElementById('pstrip'); s.style.display = uploads.length ? 'flex' : 'none'; s.innerHTML = '';
-  uploads.forEach((f, i) => {
-    const url = URL.createObjectURL(f); const w = document.createElement('div'); w.className = 'pwrap';
-    w.innerHTML = `<img class="pthumb" src="${url}"><div class="premove" onclick="rmFile(${i})">✕</div>`; s.appendChild(w);
-  });
-}
-function rmFile(i) {
-  uploads.splice(i, 1); renderPreviews();
-  if (!uploads.length) { document.getElementById('analyze-btn').disabled = true; document.getElementById('analyze-label').textContent = 'Select screenshots first'; }
-  else document.getElementById('analyze-label').textContent = `Analyze ${uploads.length} screenshot${uploads.length > 1 ? 's' : ''}`;
-}
-function b64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); }); }
-
-async function analyzeShots() {
-  if (!uploads.length) return;
-  const key = localStorage.getItem('rs_apikey') || '';
-  if (!key) { toast('⚠️ Add API key in Save tab'); switchPage('save'); return; }
-  const btn = document.getElementById('analyze-btn'), ov = document.getElementById('scanning');
-  btn.disabled = true; ov.classList.add('active');
-  const newLeads = [];
-  for (let i = 0; i < uploads.length; i++) {
-    document.getElementById('scan-status').textContent = `Screenshot ${i + 1} of ${uploads.length}`;
-    try {
-      const data = await b64(uploads[i]);
-      const lead = await extractLead(data, uploads[i].type || 'image/jpeg', key);
-      if (lead) newLeads.push(lead);
-    } catch (e) { console.error(e); }
+async function analyzeShots(){
+  if(!uploads.length)return;
+  const key=localStorage.getItem('rs_apikey')||'';
+  if(!key){toast('⚠️ Add API key in Save tab');switchPage('save');return;}
+  const btn=document.getElementById('analyze-btn'),ov=document.getElementById('scanning');
+  btn.disabled=true;ov.classList.add('active');
+  const newLeads=[];
+  for(let i=0;i<uploads.length;i++){
+    document.getElementById('scan-status').textContent=`Screenshot ${i+1} of ${uploads.length}`;
+    try{const data=await b64(uploads[i]);const lead=await extractLead(data,uploads[i].type||'image/jpeg',key);if(lead)newLeads.push(lead);}catch(e){console.error(e);}
   }
-  ov.classList.remove('active'); btn.disabled = false;
-  if (newLeads.length) {
-    const existing = leads.map(l => l.name?.toLowerCase());
-    const fresh = newLeads.filter(l => !existing.includes(l.name?.toLowerCase()));
-    for (const lead of fresh) {
-      lead.id = Date.now() + Math.random();
-      lead.added_at = new Date().toLocaleString();
-      const saved = await dbInsert('leads', lead);
-      leads.unshift(saved ? (saved[0] || lead) : lead);
+  ov.classList.remove('active');btn.disabled=false;
+  if(newLeads.length){
+    const existing=leads.map(l=>l.name?.toLowerCase());
+    const fresh=newLeads.filter(l=>!existing.includes(l.name?.toLowerCase()));
+    for(const lead of fresh){
+      lead.id=Date.now()+Math.floor(Math.random()*1000);
+      lead.added_at=new Date().toLocaleString();
+      setSyncState('syncing','Saving…');
+      const saved=await dbInsert('leads',lead);
+      leads.unshift(saved?(saved[0]||lead):lead);
+      setSyncState('live','Live ●');
     }
-    uploads = []; renderPreviews();
-    document.getElementById('analyze-label').textContent = 'Select screenshots first';
-    renderTable(); renderStats();
-    toast(`✓ ${fresh.length} lead${fresh.length !== 1 ? 's' : ''} saved to cloud`);
+    uploads=[];renderPreviews();
+    document.getElementById('analyze-label').textContent='Select screenshots first';
+    renderTable();renderStats();
+    toast(`✓ ${fresh.length} lead${fresh.length!==1?'s':''} saved to cloud`);
     switchPage('dashboard');
-  } else { toast('No leads found — check API key'); }
+  }else{toast('No leads found — check API key');}
 }
 
-async function extractLead(data, mt, key) {
-  const prompt = `Analyze this Facebook Marketplace seller screenshot and extract buyer info.
+async function extractLead(data,mt,key){
+  const prompt=`Analyze this Facebook Marketplace seller screenshot and extract buyer info.
 Return ONLY valid JSON, no markdown:
 {"name":"buyer full name","source":"Facebook Marketplace","item":"item name e.g. Storage Racks","price":"$75","units":1,"status":"pending","meetup":"TBD — buyer picking up","notes":"key conversation details","suggested_reply":"closing reply mentioning Woodland Hills pickup and soft urgency"}
 If not a Marketplace screenshot return: {"error":"not marketplace"}`;
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: mt, data } }, { type: 'text', text: prompt }] }] })
-  });
-  const d = await res.json();
-  const t = d.content?.find(b => b.type === 'text')?.text || '';
-  try { const p = JSON.parse(t.replace(/```json|```/g, '').trim()); return p.error ? null : p; } catch (e) { return null; }
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data}},{type:'text',text:prompt}]}]})});
+  const d=await res.json();
+  const t=d.content?.find(b=>b.type==='text')?.text||'';
+  try{const p=JSON.parse(t.replace(/```json|```/g,'').trim());return p.error?null:p;}catch(e){return null;}
 }
 
 // ── Calendar ──
-async function addCalEvent() {
-  const name = document.getElementById('cal-name').value.trim();
-  const dt = document.getElementById('cal-datetime').value;
-  if (!name || !dt) { toast('Name and date required'); return; }
-  const ev = {
-    id: Date.now(),
-    name, datetime: dt,
-    location: document.getElementById('cal-location').value,
-    notes: document.getElementById('cal-notes').value
-  };
-  const saved = await dbInsert('events', ev);
-  events.push(saved ? (saved[0] || ev) : ev);
+async function addCalEvent(){
+  const name=document.getElementById('cal-name').value.trim(),dt=document.getElementById('cal-datetime').value;
+  if(!name||!dt){toast('Name and date required');return;}
+  const ev={id:Date.now(),name,datetime:dt,location:document.getElementById('cal-location').value,notes:document.getElementById('cal-notes').value};
+  setSyncState('syncing','Saving…');
+  const saved=await dbInsert('events',ev);
+  events.push(saved?(saved[0]||ev):ev);
+  setSyncState('live','Live ●');
   renderEvents();
-  document.getElementById('cal-name').value = '';
-  document.getElementById('cal-datetime').value = '';
-  document.getElementById('cal-notes').value = '';
+  document.getElementById('cal-name').value='';document.getElementById('cal-datetime').value='';document.getElementById('cal-notes').value='';
   toast('✓ Meetup saved to cloud');
 }
-
-function renderEvents() {
-  const list = document.getElementById('ev-list'), wrap = document.getElementById('ev-list-wrap'), empty = document.getElementById('ev-empty');
-  list.innerHTML = '';
-  const upcoming = [...events].filter(e => new Date(e.datetime) >= new Date(Date.now() - 86400000)).sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
-  if (!upcoming.length) { empty.style.display = 'block'; wrap.style.display = 'none'; return; }
-  empty.style.display = 'none'; wrap.style.display = 'block';
-  upcoming.forEach(ev => {
-    const d = new Date(ev.datetime);
-    const row = document.createElement('div'); row.className = 'ev-row';
-    row.innerHTML = `<div class="ev-date"><div class="ev-day">${d.getDate()}</div><div class="ev-mon">${d.toLocaleString('default', { month: 'short' })}</div></div><div class="ev-info"><div class="ev-name">${ev.name}</div><div class="ev-detail">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${ev.location || 'Woodland Hills'}${ev.notes ? ' · ' + ev.notes : ''}</div></div><div class="ev-del" onclick="delEv(${ev.id})">🗑</div>`;
+function renderEvents(){
+  const list=document.getElementById('ev-list'),wrap=document.getElementById('ev-list-wrap'),empty=document.getElementById('ev-empty');
+  list.innerHTML='';
+  const upcoming=[...events].filter(e=>new Date(e.datetime)>=new Date(Date.now()-86400000)).sort((a,b)=>new Date(a.datetime)-new Date(b.datetime));
+  if(!upcoming.length){empty.style.display='block';wrap.style.display='none';return;}
+  empty.style.display='none';wrap.style.display='block';
+  upcoming.forEach(ev=>{
+    const d=new Date(ev.datetime);
+    const row=document.createElement('div');row.className='ev-row';
+    row.innerHTML=`<div class="ev-date"><div class="ev-day">${d.getDate()}</div><div class="ev-mon">${d.toLocaleString('default',{month:'short'})}</div></div><div class="ev-info"><div class="ev-name">${ev.name}</div><div class="ev-detail">${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · ${ev.location||'Woodland Hills'}${ev.notes?' · '+ev.notes:''}</div></div><div class="ev-del" onclick="delEv(${ev.id})">🗑</div>`;
     list.appendChild(row);
   });
 }
-
-async function delEv(id) {
-  await dbDelete('events', id);
-  events = events.filter(e => e.id !== id);
-  renderEvents(); toast('Event removed');
+async function delEv(id){
+  setSyncState('syncing','Deleting…');
+  await dbDelete('events',id);
+  events=events.filter(e=>e.id!==id);
+  setSyncState('live','Live ●');
+  renderEvents();toast('Event removed');
 }
-
-function exportCal() {
-  if (!events.length) { toast('No events to export'); return; }
-  const next = [...events].sort((a, b) => new Date(a.datetime) - new Date(b.datetime))[0];
-  const d = new Date(next.datetime), end = new Date(d.getTime() + 3600000);
-  const fmt = x => x.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Rack pickup – ' + next.name)}&dates=${fmt(d)}/${fmt(end)}&location=${encodeURIComponent(next.location || 'Woodland Hills, CA')}&details=${encodeURIComponent(next.notes || 'Storage rack pickup')}`, '_blank');
+function exportCal(){
+  if(!events.length){toast('No events to export');return;}
+  const next=[...events].sort((a,b)=>new Date(a.datetime)-new Date(b.datetime))[0];
+  const d=new Date(next.datetime),end=new Date(d.getTime()+3600000);
+  const fmt=x=>x.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Rack pickup – '+next.name)}&dates=${fmt(d)}/${fmt(end)}&location=${encodeURIComponent(next.location||'Woodland Hills, CA')}&details=${encodeURIComponent(next.notes||'Storage rack pickup')}`, '_blank');
 }
 
 // ── Templates ──
-function renderTmpls() {
-  const list = document.getElementById('tmpl-list'); list.innerHTML = '';
-  const defLen = getDefaultTmpls().length;
-  const catMap = { green: 'First response', blue: 'Follow-up', orange: 'Negotiation', yellow: 'Confirm' };
-  templates.forEach((t, i) => {
-    const card = document.createElement('div'); card.className = 'tmpl-card';
-    const isCustom = i >= defLen;
-    card.innerHTML = `
+function renderTmpls(){
+  const list=document.getElementById('tmpl-list');list.innerHTML='';
+  const defLen=defaultTmpls().length;
+  const catMap={green:'First response',blue:'Follow-up',orange:'Negotiation',yellow:'Confirm'};
+  templates.forEach((t,i)=>{
+    const card=document.createElement('div');card.className='tmpl-card';
+    const isCustom=i>=defLen;
+    card.innerHTML=`
       <div class="tmpl-hdr" onclick="togTmpl(${t.id})">
-        <div class="tmpl-title-wrap"><span class="ttag tt-${t.cat}">${catMap[t.cat] || ''}</span><div class="tmpl-name">${t.title}</div></div>
+        <div class="tmpl-title-wrap"><span class="ttag tt-${t.cat}">${catMap[t.cat]||''}</span><div class="tmpl-name">${t.title}</div></div>
         <span style="font-size:12px;color:#bcc0c4;">▾</span>
       </div>
       <div class="tmpl-body" id="tb-${t.id}">
@@ -842,114 +874,103 @@ function renderTmpls() {
         <div class="tmpl-hint">Placeholders: [NAME] [PRICE] [DAY] [ADDRESS]</div>
         <div class="tmpl-actions">
           <button class="act-btn" onclick="cpEl('tt-${t.id}')">📋 Copy</button>
-          ${isCustom ? `<button class="act-btn danger" onclick="delTmpl(${t.id})">🗑 Delete</button>` : ''}
+          ${isCustom?`<button class="act-btn danger" onclick="delTmpl(${t.id})">🗑 Delete</button>`:''}
         </div>
       </div>`;
     list.appendChild(card);
   });
 }
-function togTmpl(id) { document.getElementById(`tb-${id}`).classList.toggle('open'); }
-function delTmpl(id) { templates = templates.filter(t => t.id !== id); renderTmpls(); toast('Template deleted'); }
-function saveTmpl() {
-  const title = document.getElementById('tn-title').value.trim(), text = document.getElementById('tn-text').value.trim();
-  if (!title || !text) { toast('Title and message required'); return; }
-  templates.push({ id: Date.now(), title, cat: document.getElementById('tn-cat').value, text });
-  renderTmpls(); closeM('tmpl-modal');
-  document.getElementById('tn-title').value = ''; document.getElementById('tn-text').value = '';
+function togTmpl(id){document.getElementById(`tb-${id}`).classList.toggle('open');}
+function delTmpl(id){templates=templates.filter(t=>t.id!==id);renderTmpls();toast('Template deleted');}
+function saveTmpl(){
+  const title=document.getElementById('tn-title').value.trim(),text=document.getElementById('tn-text').value.trim();
+  if(!title||!text){toast('Title and message required');return;}
+  templates.push({id:Date.now(),title,cat:document.getElementById('tn-cat').value,text});
+  renderTmpls();closeM('tmpl-modal');
+  document.getElementById('tn-title').value='';document.getElementById('tn-text').value='';
   toast('✓ Template saved');
 }
 
-// ── Save / Export ──
-function saveKey() { localStorage.setItem('rs_apikey', document.getElementById('api-key-input').value); }
-
-function exportJSON() {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({ leads, events, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' }));
-  a.download = `rackscout-${Date.now()}.json`; a.click(); toast('✓ JSON exported');
+// ── Save/Export ──
+function saveKey(){localStorage.setItem('rs_apikey',document.getElementById('api-key-input').value);}
+function exportJSON(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify({leads,events,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}));
+  a.download=`rackscout-${Date.now()}.json`;a.click();toast('✓ JSON exported');
 }
-
-function exportCSV() {
-  const rows = [['Name', 'Source', 'Item', 'Price', 'Units', 'Status', 'Meetup', 'Notes', 'Added']];
-  leads.forEach(l => rows.push([l.name || '', l.source || '', l.item || '', l.price || '', l.units || 1, l.status || '', l.meetup || '', l.notes || '', l.added_at || '']));
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = `rackscout-leads-${Date.now()}.csv`; a.click(); toast('✓ CSV exported');
+function exportCSV(){
+  const rows=[['Name','Source','Item','Price','Units','Status','Meetup','Notes','Added']];
+  leads.forEach(l=>rows.push([l.name||'',l.source||'',l.item||'',l.price||'',l.units||1,l.status||'',l.meetup||'',l.notes||'',l.added_at||'']));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`rackscout-leads-${Date.now()}.csv`;a.click();toast('✓ CSV exported');
 }
-
-async function importData(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = async ev => {
-    try {
-      const d = JSON.parse(ev.target.result);
-      if (d.leads) {
-        for (const lead of d.leads) { await dbInsert('leads', lead); }
-      }
+async function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.leads){for(const lead of d.leads){await dbInsert('leads',lead);}}
       await loadAll();
-      toast(`✓ Imported ${d.leads?.length || 0} leads`);
-    } catch (err) { toast('Import failed'); }
+      toast(`✓ Imported ${d.leads?.length||0} leads`);
+    }catch(err){toast('Import failed');}
   };
   r.readAsText(file);
 }
-
-function copySummary() {
-  const sched = leads.filter(l => l.status === 'scheduled'), pend = leads.filter(l => l.status === 'pending');
-  let t = `RACKSCOUT SUMMARY — ${new Date().toLocaleDateString()}\n\n📅 SCHEDULED (${sched.length})\n${'─'.repeat(28)}\n`;
-  sched.forEach(l => { t += `• ${l.name} — ${l.item || 'rack'} @ ${l.price || '$75'} · ${l.notes || ''}\n`; });
-  t += `\n⏳ PENDING (${pend.length})\n${'─'.repeat(28)}\n`;
-  pend.forEach(l => { t += `• ${l.name} — ${l.item || 'rack'} @ ${l.price || '$75'}\n`; });
-  navigator.clipboard.writeText(t).then(() => toast('✓ Summary copied')).catch(() => toast('Copy failed'));
+function copySummary(){
+  const sched=leads.filter(l=>l.status==='scheduled'),pend=leads.filter(l=>l.status==='pending');
+  let t=`RACKSCOUT SUMMARY — ${new Date().toLocaleDateString()}\n\n📅 SCHEDULED (${sched.length})\n${'─'.repeat(28)}\n`;
+  sched.forEach(l=>{t+=`• ${l.name} — ${l.item||'rack'} @ ${l.price||'$75'} · ${l.notes||''}\n`;});
+  t+=`\n⏳ PENDING (${pend.length})\n${'─'.repeat(28)}\n`;
+  pend.forEach(l=>{t+=`• ${l.name} — ${l.item||'rack'} @ ${l.price||'$75'}\n`;});
+  navigator.clipboard.writeText(t).then(()=>toast('✓ Summary copied')).catch(()=>toast('Copy failed'));
 }
-
-async function clearAll() {
-  if (!confirm('Delete ALL leads and events from the cloud database? This cannot be undone.')) return;
+async function clearAll(){
+  if(!confirm('Delete ALL leads and events from the cloud? Cannot be undone.'))return;
+  setSyncState('syncing','Clearing…');
   await dbDeleteAll('leads');
   await dbDeleteAll('events');
-  leads = []; events = [];
-  renderTable(); renderStats(); renderEvents(); toast('All cloud data cleared');
+  leads=[];events=[];
+  setSyncState('live','Live ●');
+  renderTable();renderStats();renderEvents();toast('All cloud data cleared');
 }
 
-// ── Navigation ──
-const pages = ['dashboard', 'scan', 'calendar', 'templates', 'save'];
-function switchPage(name) {
-  pages.forEach(p => { document.getElementById(`page-${p}`).classList.toggle('active', p === name); });
-  document.querySelectorAll('.ptab').forEach((t, i) => t.classList.toggle('active', pages[i] === name));
-  document.querySelectorAll('.bnitem').forEach((t, i) => t.classList.toggle('active', pages[i] === name));
+// ── Nav ──
+const pages=['dashboard','scan','calendar','templates','save'];
+function switchPage(name){
+  pages.forEach(p=>{document.getElementById(`page-${p}`).classList.toggle('active',p===name);});
+  document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',pages[i]===name));
+  document.querySelectorAll('.bnitem').forEach((t,i)=>t.classList.toggle('active',pages[i]===name));
 }
 
 // ── Utilities ──
-function cpEl(id) {
-  const el = document.getElementById(id); if (!el) return;
-  navigator.clipboard.writeText(el.textContent).then(() => toast('✓ Copied!')).catch(() => {
-    const ta = document.createElement('textarea'); ta.value = el.textContent;
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('✓ Copied!');
-  });
-}
-function openM(id) { document.getElementById(id).classList.add('open'); }
-function closeM(id) { document.getElementById(id).classList.remove('open'); }
-function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+function cpEl(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.textContent).then(()=>toast('✓ Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=el.textContent;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Copied!');});}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
 
-// ── Load all data from Supabase ──
-async function loadAll() {
-  setSyncState('syncing', 'Loading…');
-  try {
-    leads = await dbGet('leads');
-    events = await dbGet('events');
-    renderTable(); renderStats(); renderEvents();
-    setSyncState('synced', 'Synced ✓');
-  } catch (e) {
-    setSyncState('error', 'Offline');
-    toast('Could not connect to cloud — check connection');
+// ── Load all data ──
+async function loadAll(){
+  setSyncState('syncing','Loading…');
+  try{
+    leads=await dbGet('leads');
+    events=await dbGet('events');
+    renderTable();renderStats();renderEvents();
+    setSyncState('live','Live ●');
+  }catch(e){
+    setSyncState('error','Offline');
+    toast('Could not connect to cloud');
   }
 }
 
 // ── Init ──
-const k = localStorage.getItem('rs_apikey');
-if (k) document.getElementById('api-key-input').value = k;
-document.getElementById('tn-date').textContent = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+const k=localStorage.getItem('rs_apikey');
+if(k)document.getElementById('api-key-input').value=k;
+document.getElementById('tn-date').textContent=new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 renderTmpls();
-loadAll();
+loadAll().then(()=>startRealtime());
 </script>
 </body>
 </html>
