@@ -3,174 +3,953 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Rack Scout – Lead Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>RackScout — Meetup Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0e0f11;
-    --surface: #16181c;
-    --surface2: #1e2026;
-    --border: #2a2d35;
-    --accent: #00e5a0;
-    --accent2: #0066ff;
-    --warn: #ff6b35;
-    --text: #f0f1f3;
-    --muted: #7a7f8e;
-    --card-r: 16px;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{min-height:100%;background:#f0f2f5;color:#1c1e21;font-family:'Inter',sans-serif;font-size:14px;}
+.topnav{background:#fff;border-bottom:1px solid #e4e6ea;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.tnl{display:flex;align-items:center;gap:10px;}
+.fb-logo{width:34px;height:34px;background:#1877f2;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px;}
+.tn-title{font-size:16px;font-weight:700;color:#1877f2;}
+.tn-pill{background:#f0f2f5;border:1px solid #e4e6ea;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;color:#1c1e21;display:flex;align-items:center;gap:6px;}
+.tn-date{font-size:13px;color:#65676b;}
+.sync-indicator{display:flex;align-items:center;gap:6px;font-size:12px;color:#65676b;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#e4e6ea;transition:background .3s;}
+.sync-dot.syncing{background:#f59e0b;animation:pulse-dot 1s ease-in-out infinite;}
+.sync-dot.synced{background:#16a34a;}
+.sync-dot.error{background:#ef4444;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.4;}}
+.page-tabs{background:#fff;border-bottom:1px solid #e4e6ea;padding:0 20px;display:flex;gap:0;}
+.ptab{padding:13px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#65676b;border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s;}
+.ptab:hover{color:#1c1e21;}
+.ptab.active{color:#1877f2;border-bottom-color:#1877f2;}
+.stats-bar{display:flex;gap:14px;padding:18px 20px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.stats-bar::-webkit-scrollbar{display:none;}
+.stat-card{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px 18px;min-width:150px;flex:1;display:flex;align-items:center;gap:13px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.si{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.si-grey{background:#f0f2f5;}.si-green{background:#e7f9ee;}.si-amber{background:#fff8e1;}.si-blue{background:#e7f0ff;}.si-gold{background:#fffbe6;}
+.sc-label{font-size:12px;color:#65676b;margin-bottom:3px;font-weight:500;}
+.sc-value{font-size:22px;font-weight:800;color:#1c1e21;line-height:1;letter-spacing:-0.5px;}
+.sc-value.green{color:#1a7f37;}
+.filter-panel{background:#fff;border:1px solid #e4e6ea;border-radius:12px;margin:14px 20px 0;padding:14px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.flabel{font-size:11px;font-weight:700;color:#65676b;text-transform:uppercase;letter-spacing:.07em;margin-right:2px;white-space:nowrap;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #e4e6ea;background:#fff;color:#65676b;white-space:nowrap;transition:all .15s;user-select:none;}
+.chip:hover{border-color:#1877f2;color:#1877f2;}
+.chip.active{background:#1877f2;color:#fff;border-color:#1877f2;font-weight:600;}
+.chip.c-pending.active{background:#f59e0b;border-color:#f59e0b;}
+.chip.c-scheduled.active{background:#3b82f6;border-color:#3b82f6;}
+.chip.c-sold.active{background:#16a34a;border-color:#16a34a;}
+.chip.c-cancelled.active{background:#ef4444;border-color:#ef4444;}
+.chip-count{background:rgba(255,255,255,0.25);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700;}
+.chip:not(.active) .chip-count{background:#f0f2f5;color:#1c1e21;}
+.frow2{margin-top:11px;padding-top:11px;border-top:1px solid #f0f2f5;}
+.table-area{margin:14px 20px 0;}
+.table-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.table-count{font-size:15px;font-weight:700;color:#1c1e21;}
+.table-count span{color:#65676b;font-weight:400;}
+.tbar-right{display:flex;align-items:center;gap:10px;}
+.search-wrap{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid #e4e6ea;border-radius:8px;padding:8px 13px;}
+.search-wrap input{border:none;outline:none;font-family:'Inter',sans-serif;font-size:13px;color:#1c1e21;width:200px;background:transparent;}
+.search-wrap input::placeholder{color:#bcc0c4;}
+.btn-add{background:#1877f2;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.btn-add:hover{background:#1565d8;}
+.btn-add:active{transform:scale(0.97);}
+.table-wrap{background:#fff;border:1px solid #e4e6ea;border-radius:12px;overflow:hidden;margin-bottom:28px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:780px;}
+thead tr{background:#f9fafb;border-bottom:1.5px solid #e4e6ea;}
+th{padding:11px 18px;font-size:11px;font-weight:700;color:#65676b;text-transform:uppercase;letter-spacing:.07em;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;}
+th:hover{color:#1c1e21;}
+td{padding:16px 18px;border-bottom:1px solid #f0f2f5;vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafbff;}
+.item-cell{display:flex;align-items:flex-start;gap:11px;}
+.item-ico{width:34px;height:34px;border-radius:8px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;}
+.item-name{font-size:14px;font-weight:600;color:#1c1e21;line-height:1.3;}
+.item-price{font-size:12px;color:#1877f2;font-weight:500;margin-top:3px;line-height:1.4;}
+.buyer-name{font-size:14px;font-weight:500;color:#1c1e21;}
+.buyer-src{font-size:12px;color:#65676b;margin-top:3px;}
+.meetup-main{font-size:14px;color:#1c1e21;}
+.meetup-time{font-size:12px;color:#65676b;margin-top:3px;}
+.sbadge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap;}
+.sbadge::before{content:'';width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sb-pending{background:#fff8e1;color:#7a5c00;}.sb-pending::before{background:#f59e0b;}
+.sb-scheduled{background:#e7f0ff;color:#1540a0;}.sb-scheduled::before{background:#3b82f6;}
+.sb-sold{background:#e7f9ee;color:#0d5c2b;}.sb-sold::before{background:#16a34a;}
+.sb-cancelled{background:#fde8e8;color:#8b1a1a;}.sb-cancelled::before{background:#ef4444;}
+.notes-cell{font-size:13px;color:#3c4043;line-height:1.55;max-width:280px;}
+.act-btns{display:flex;gap:6px;}
+.act-btn{padding:5px 14px;border-radius:6px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #e4e6ea;background:#fff;color:#3c4043;transition:all .15s;white-space:nowrap;}
+.act-btn:hover{background:#f0f2f5;}
+.act-btn.danger:hover{background:#fde8e8;color:#ef4444;border-color:#f5c2c2;}
+.empty-row td{text-align:center;padding:52px;color:#bcc0c4;}
+.eico{font-size:36px;margin-bottom:12px;}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,0.18);}
+.mhdr{padding:20px 24px 16px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;}
+.mhdr-title{font-size:17px;font-weight:700;}
+.mclose{width:30px;height:30px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#65676b;}
+.mbody{padding:20px 24px;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:11px;font-weight:700;color:#65676b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+.fi{width:100%;padding:10px 13px;border:1.5px solid #e4e6ea;border-radius:8px;font-family:'Inter',sans-serif;font-size:14px;color:#1c1e21;outline:none;background:#fff;transition:border-color .15s;}
+.fi:focus{border-color:#1877f2;}
+.fi::placeholder{color:#bcc0c4;}
+textarea.fi{height:78px;resize:none;line-height:1.5;}
+select.fi{cursor:pointer;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mfooter{padding:14px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid #f0f2f5;}
+.btn-cancel{padding:9px 20px;border-radius:8px;border:1.5px solid #e4e6ea;background:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;cursor:pointer;color:#3c4043;}
+.btn-save{padding:9px 22px;border-radius:8px;border:none;background:#1877f2;color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-save:hover{background:#1565d8;}
+.subpage{padding:18px 20px 80px;}
+.sp-card{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.sp-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.sp-sub{font-size:13px;color:#65676b;line-height:1.5;margin-bottom:16px;}
+.export-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.ebtn{padding:14px 8px;border-radius:10px;border:1.5px solid #e4e6ea;background:#fff;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;transition:all .15s;}
+.ebtn:hover{border-color:#1877f2;background:#e7f0ff;}
+.ebtn .ei{font-size:22px;display:block;margin-bottom:6px;}
+.ebtn .el{font-size:12px;font-weight:600;color:#3c4043;}
+.danger-card{border-color:#fca5a5;}
+.danger-card .sp-title{color:#ef4444;}
+.upload-zone{border:2px dashed #e4e6ea;border-radius:10px;padding:36px 20px;text-align:center;cursor:pointer;background:#fafbff;transition:all .2s;}
+.upload-zone:hover,.upload-zone.drag{border-color:#1877f2;background:#e7f0ff;}
+.uz-ico{font-size:28px;margin-bottom:10px;}
+.uz-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.uz-sub{font-size:13px;color:#bcc0c4;}
+#file-input{display:none;}
+.pstrip{display:flex;gap:8px;overflow-x:auto;padding:10px 0;-webkit-overflow-scrolling:touch;}
+.pstrip::-webkit-scrollbar{display:none;}
+.pwrap{position:relative;flex-shrink:0;}
+.pthumb{width:64px;height:64px;border-radius:8px;object-fit:cover;border:1.5px solid #e4e6ea;}
+.premove{position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;border:2px solid #fff;}
+.scanning{background:#e7f0ff;border-radius:10px;padding:28px;text-align:center;margin-top:12px;display:none;}
+.scanning.active{display:block;}
+.pring{width:52px;height:52px;border-radius:50%;border:3px solid #1877f2;margin:0 auto 14px;animation:spin 1.4s ease-in-out infinite;}
+@keyframes spin{0%,100%{transform:scale(1);}50%{transform:scale(1.08);opacity:.7;}}
+.tmpl-card{background:#fff;border:1px solid #e4e6ea;border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.tmpl-hdr{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.tmpl-hdr:hover{background:#fafbff;}
+.tmpl-title-wrap{display:flex;align-items:center;gap:10px;}
+.ttag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;}
+.tt-green{background:#e7f9ee;color:#0d5c2b;}
+.tt-blue{background:#e7f0ff;color:#1540a0;}
+.tt-orange{background:#fff8e1;color:#7a5c00;}
+.tt-yellow{background:#fffbe6;color:#5c4200;}
+.tmpl-name{font-size:14px;font-weight:600;}
+.tmpl-body{padding:0 16px 14px;border-top:1px solid #f0f2f5;display:none;}
+.tmpl-body.open{display:block;padding-top:12px;}
+.tmpl-txt{background:#f9fafb;border:1px solid #e4e6ea;border-radius:8px;padding:12px;font-size:13px;line-height:1.7;color:#3c4043;white-space:pre-wrap;}
+.tmpl-hint{font-size:11px;color:#bcc0c4;margin-top:8px;}
+.tmpl-actions{display:flex;gap:8px;margin-top:10px;}
+.ev-row{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;border-bottom:1px solid #f0f2f5;}
+.ev-row:last-child{border-bottom:none;}
+.ev-date{width:44px;height:44px;border-radius:10px;background:#e7f0ff;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.ev-day{font-size:17px;font-weight:800;color:#1877f2;line-height:1;}
+.ev-mon{font-size:9px;color:#1877f2;text-transform:uppercase;font-weight:700;}
+.ev-info{flex:1;min-width:0;}
+.ev-name{font-size:14px;font-weight:600;}
+.ev-detail{font-size:12px;color:#65676b;margin-top:3px;}
+.ev-del{width:30px;height:30px;border-radius:6px;background:#fde8e8;border:1px solid #f5c2c2;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex-shrink:0;}
+.bnav{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e6ea;padding:6px 0 env(safe-area-inset-bottom);z-index:50;}
+.bnitems{display:flex;justify-content:space-around;}
+.bnitem{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 14px;cursor:pointer;color:#bcc0c4;font-size:10px;font-weight:600;}
+.bnitem.active{color:#1877f2;}
+.bn-ico{font-size:20px;}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#1c1e21;color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.page{display:none;}.page.active{display:block;}
+/* Cloud banner */
+.cloud-banner{background:#e7f0ff;border:1px solid #bcd1fa;border-radius:10px;padding:12px 16px;margin:14px 20px 0;display:flex;align-items:center;gap:12px;font-size:13px;color:#1540a0;}
+.cloud-banner .cb-icon{font-size:20px;flex-shrink:0;}
+.cloud-banner strong{font-weight:600;}
+@media(max-width:640px){
+  .stats-bar,.table-area,.filter-panel,.subpage,.cloud-banner{margin-left:12px;margin-right:12px;}
+  .stats-bar{padding-left:12px;padding-right:12px;}
+  .topnav,.page-tabs{padding-left:12px;padding-right:12px;}
+  .tn-date{display:none;}
+  .bnav{display:block;}
+  body{padding-bottom:64px;}
+  .fgrid{grid-template-columns:1fr;}
+  .ptab{padding:11px 12px;font-size:12px;}
+  .search-wrap input{width:130px;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="tnl">
+    <div class="fb-logo">f</div>
+    <div class="tn-title">Marketplace</div>
+  </div>
+  <div class="tn-pill">📦 Meetup Tracker</div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="sync-indicator">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">—</span>
+    </div>
+    <div class="tn-date" id="tn-date"></div>
+  </div>
+</div>
+
+<!-- PAGE TABS -->
+<div class="page-tabs">
+  <div class="ptab active" onclick="switchPage('dashboard')">📋 Dashboard</div>
+  <div class="ptab" onclick="switchPage('scan')">📸 Scan</div>
+  <div class="ptab" onclick="switchPage('calendar')">📅 Calendar</div>
+  <div class="ptab" onclick="switchPage('templates')">💬 Templates</div>
+  <div class="ptab" onclick="switchPage('save')">💾 Save</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="stats-bar">
+    <div class="stat-card"><div class="si si-grey">📋</div><div><div class="sc-label">Total Meetups</div><div class="sc-value" id="s-total">0</div></div></div>
+    <div class="stat-card"><div class="si si-green">💰</div><div><div class="sc-label">Potential Revenue</div><div class="sc-value" id="s-revenue">$0</div></div></div>
+    <div class="stat-card"><div class="si si-amber">⏳</div><div><div class="sc-label">Pending</div><div class="sc-value" id="s-pending">0</div></div></div>
+    <div class="stat-card"><div class="si si-blue">📅</div><div><div class="sc-label">Scheduled</div><div class="sc-value" id="s-scheduled">0</div></div></div>
+    <div class="stat-card"><div class="si si-gold">🏆</div><div><div class="sc-label">Est. Profit</div><div class="sc-value green" id="s-profit">$0</div></div></div>
+  </div>
+
+  <div class="filter-panel">
+    <div class="frow">
+      <span class="flabel">STATUS</span>
+      <div class="chip c-all active" data-f="status" data-v="all" onclick="setF('status','all',this)">All <span class="chip-count" id="fc-all">0</span></div>
+      <div class="chip c-pending" data-f="status" data-v="pending" onclick="setF('status','pending',this)">⏳ Pending <span class="chip-count" id="fc-pending">0</span></div>
+      <div class="chip c-scheduled" data-f="status" data-v="scheduled" onclick="setF('status','scheduled',this)">📅 Scheduled <span class="chip-count" id="fc-scheduled">0</span></div>
+      <div class="chip c-sold" data-f="status" data-v="sold" onclick="setF('status','sold',this)">✅ Sold <span class="chip-count" id="fc-sold">0</span></div>
+      <div class="chip c-cancelled" data-f="status" data-v="cancelled" onclick="setF('status','cancelled',this)">❌ Cancelled <span class="chip-count" id="fc-cancelled">0</span></div>
+    </div>
+    <div class="frow frow2" id="item-filter-row">
+      <span class="flabel">ITEM</span>
+      <div class="chip active" data-f="item" data-v="all" onclick="setF('item','all',this)">All Items</div>
+    </div>
+  </div>
+
+  <div class="table-area">
+    <div class="table-topbar">
+      <div class="table-count">Showing <span id="showing-count">0</span> meetups</div>
+      <div class="tbar-right">
+        <div class="search-wrap">🔍&nbsp;<input type="text" id="search-input" placeholder="Search buyer or item…" oninput="renderTable()"></div>
+        <button class="btn-add" onclick="openAddModal()">+ Add Meetup</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th onclick="sortBy('item')">ITEM & PRICE ↕</th>
+            <th onclick="sortBy('name')">BUYER ↕</th>
+            <th onclick="sortBy('meetup')">MEETUP DETAILS ↕</th>
+            <th onclick="sortBy('status')">STATUS ↕</th>
+            <th>NOTES</th>
+            <th>ACTIONS</th>
+          </tr></thead>
+          <tbody id="leads-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN -->
+<div id="page-scan" class="page">
+  <div class="subpage">
+    <div class="sp-card">
+      <div class="sp-title">Scan Marketplace Screenshots</div>
+      <div class="sp-sub">Upload conversation screenshots — Claude extracts buyer name, item, price, and saves to cloud automatically.</div>
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="uz-ico">📸</div>
+        <div class="uz-title">Tap to upload screenshots</div>
+        <div class="uz-sub">Select from camera roll or drag & drop</div>
+        <input type="file" id="file-input" accept="image/*" multiple>
+      </div>
+      <div class="pstrip" id="pstrip" style="display:none"></div>
+      <button class="btn-add" id="analyze-btn" disabled onclick="analyzeShots()" style="width:100%;padding:13px;margin-top:12px;border-radius:10px;font-size:14px;justify-content:center;display:flex;">
+        <span id="analyze-label">Select screenshots first</span>
+      </button>
+      <div class="scanning" id="scanning">
+        <div class="pring"></div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:5px;">Reading your messages…</div>
+        <div style="font-size:13px;color:#1877f2;" id="scan-status">Screenshot 1 of 1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div id="page-calendar" class="page">
+  <div class="subpage">
+    <div class="sp-card">
+      <div class="sp-title">Schedule a Meetup</div>
+      <div class="sp-sub">Add pickup appointments. Synced to cloud instantly.</div>
+      <div class="fgrid">
+        <div class="fg"><label>Buyer Name</label><input class="fi" type="text" id="cal-name" placeholder="e.g. Natalie Wizner"></div>
+        <div class="fg"><label>Date & Time</label><input class="fi" type="datetime-local" id="cal-datetime"></div>
+      </div>
+      <div class="fg"><label>Location</label><input class="fi" type="text" id="cal-location" value="Woodland Hills, CA"></div>
+      <div class="fg"><label>Items / Notes</label><textarea class="fi" id="cal-notes" placeholder="e.g. 2× storage racks $150 cash"></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn-save" onclick="addCalEvent()" style="flex:1;padding:12px;">Add to schedule</button>
+        <button class="btn-cancel" onclick="exportCal()" style="flex:1;padding:12px;">📅 Export to Calendar</button>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:#65676b;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Upcoming Meetups</div>
+    <div id="ev-empty" style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;text-align:center;padding:32px;color:#bcc0c4;display:block;"><div style="font-size:28px;margin-bottom:8px">📆</div><div style="font-size:13px">No meetups scheduled yet</div></div>
+    <div style="background:#fff;border:1px solid #e4e6ea;border-radius:12px;overflow:hidden;display:none;" id="ev-list-wrap"><div id="ev-list"></div></div>
+  </div>
+</div>
+
+<!-- TEMPLATES -->
+<div id="page-templates" class="page">
+  <div class="subpage">
+    <div style="font-size:13px;color:#65676b;margin-bottom:12px;">Tap any template to expand and copy</div>
+    <div id="tmpl-list"></div>
+    <button class="btn-cancel" onclick="openM('tmpl-modal')" style="width:100%;padding:12px;border-radius:10px;font-size:14px;margin-top:4px;">+ Add custom template</button>
+  </div>
+</div>
+
+<!-- SAVE -->
+<div id="page-save" class="page">
+  <div class="subpage">
+    <div class="sp-card" style="border-color:#bcd1fa;background:#f0f6ff;">
+      <div class="sp-title" style="color:#1877f2;">☁️ Cloud Sync Active</div>
+      <div class="sp-sub" style="margin-bottom:0;">All leads and events save to Supabase instantly. Your data is accessible from any device, any browser — just open this app and everything loads automatically.</div>
+    </div>
+    <div class="sp-card">
+      <div class="sp-title">Export Data</div>
+      <div class="sp-sub">Back up all leads as JSON or CSV.</div>
+      <div class="export-grid">
+        <button class="ebtn" onclick="exportJSON()"><span class="ei">📤</span><span class="el">JSON Backup</span></button>
+        <button class="ebtn" onclick="exportCSV()"><span class="ei">📊</span><span class="el">CSV Export</span></button>
+        <button class="ebtn" onclick="document.getElementById('import-input').click()"><span class="ei">📥</span><span class="el">Import</span></button>
+      </div>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="sp-card">
+      <div class="sp-title">Copy Lead Summary</div>
+      <div class="sp-sub">Plain-text summary of all scheduled and pending leads.</div>
+      <button class="btn-save" onclick="copySummary()" style="width:100%;padding:12px;">📋 Copy lead summary</button>
+    </div>
+    <div class="sp-card">
+      <div class="sp-title">Anthropic API Key</div>
+      <div class="sp-sub">Required for scanning screenshots. Stored only on your device.</div>
+      <div class="fg"><label>API Key</label><input class="fi" type="password" id="api-key-input" placeholder="sk-ant-…" oninput="saveKey()"></div>
+      <div style="font-size:12px;color:#65676b;margin-top:6px;">Get your key at <strong style="color:#1877f2;">console.anthropic.com</strong> → API Keys</div>
+    </div>
+    <div class="sp-card danger-card">
+      <div class="sp-title">Danger Zone</div>
+      <div class="sp-sub">Permanently deletes ALL leads and events from the cloud database.</div>
+      <button class="btn-cancel" onclick="clearAll()" style="border-color:#fca5a5;color:#ef4444;width:100%;padding:12px;border-radius:8px;">🗑 Clear all cloud data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT LEAD MODAL -->
+<div class="modal-overlay" id="lead-modal">
+  <div class="modal">
+    <div class="mhdr"><div class="mhdr-title" id="modal-title">Add Meetup</div><button class="mclose" onclick="closeM('lead-modal')">✕</button></div>
+    <div class="mbody">
+      <input type="hidden" id="edit-id">
+      <div class="fgrid">
+        <div class="fg"><label>Buyer Name *</label><input class="fi" type="text" id="m-name" placeholder="e.g. Alessandra"></div>
+        <div class="fg"><label>Source</label><input class="fi" type="text" id="m-source" placeholder="Facebook Marketplace"></div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label>Item *</label><input class="fi" type="text" id="m-item" placeholder="Storage Racks" value="Storage Racks"></div>
+        <div class="fg"><label>Price per unit</label><input class="fi" type="text" id="m-price" placeholder="$75" value="$75"></div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label>Units</label><input class="fi" type="number" id="m-units" value="1" min="1"></div>
+        <div class="fg"><label>Status</label>
+          <select class="fi" id="m-status">
+            <option value="pending">⏳ Pending</option>
+            <option value="scheduled">📅 Scheduled</option>
+            <option value="sold">✅ Sold</option>
+            <option value="cancelled">❌ Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Meetup detail</label><input class="fi" type="text" id="m-meetup" placeholder="e.g. TBD — buyer picking up"></div>
+      <div class="fg"><label>Date & Time</label><input class="fi" type="datetime-local" id="m-datetime"></div>
+      <div class="fg"><label>Notes</label><textarea class="fi" id="m-notes" placeholder="Key details from the conversation…"></textarea></div>
+    </div>
+    <div class="mfooter">
+      <button class="btn-cancel" onclick="closeM('lead-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveLead()">Save Meetup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TEMPLATE MODAL -->
+<div class="modal-overlay" id="tmpl-modal">
+  <div class="modal">
+    <div class="mhdr"><div class="mhdr-title">New Template</div><button class="mclose" onclick="closeM('tmpl-modal')">✕</button></div>
+    <div class="mbody">
+      <div class="fgrid">
+        <div class="fg"><label>Title</label><input class="fi" type="text" id="tn-title" placeholder="e.g. Weekend bundle deal"></div>
+        <div class="fg"><label>Category</label>
+          <select class="fi" id="tn-cat">
+            <option value="green">First response</option>
+            <option value="blue">Follow-up</option>
+            <option value="orange">Negotiation</option>
+            <option value="yellow">Confirm</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Message</label><textarea class="fi" id="tn-text" style="height:120px;" placeholder="Use [NAME] [PRICE] [DAY] [ADDRESS]"></textarea></div>
+    </div>
+    <div class="mfooter">
+      <button class="btn-cancel" onclick="closeM('tmpl-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveTmpl()">Save Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="bnitems">
+    <div class="bnitem active" onclick="switchPage('dashboard')"><div class="bn-ico">📋</div>Dashboard</div>
+    <div class="bnitem" onclick="switchPage('scan')"><div class="bn-ico">📸</div>Scan</div>
+    <div class="bnitem" onclick="switchPage('calendar')"><div class="bn-ico">📅</div>Calendar</div>
+    <div class="bnitem" onclick="switchPage('templates')"><div class="bn-ico">💬</div>Templates</div>
+    <div class="bnitem" onclick="switchPage('save')"><div class="bn-ico">💾</div>Save</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Supabase config ──
+const SUPA_URL = 'https://xpwyjtppowhonuzugaig.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhwd3lqdHBwb3dob251enVnYWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNDU2NjcsImV4cCI6MjA5NDcyMTY2N30.6RLVZcaxN73Brj-Jz-b2YTQWyrkO_5hKcmjCyhPfVTo';
+
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SUPA_KEY,
+  'Authorization': `Bearer ${SUPA_KEY}`,
+  'Prefer': 'return=representation'
+};
+
+// ── Constants ──
+const COST = 20, SELL = 75, MARGIN = SELL - COST;
+
+// ── State ──
+let leads = [];
+let events = [];
+let templates = getDefaultTmpls();
+let uploads = [];
+let aFilters = { status: 'all', item: 'all' };
+let sortK = 'status', sortD = 1;
+
+// ── Supabase helpers ──
+async function dbGet(table) {
+  setSyncState('syncing', 'Loading…');
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?select=*&order=created_at.desc`, { headers: HEADERS });
+  if (!res.ok) { setSyncState('error', 'Load failed'); return []; }
+  const data = await res.json();
+  setSyncState('synced', 'Synced');
+  return data;
+}
+
+async function dbInsert(table, row) {
+  setSyncState('syncing', 'Saving…');
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+    method: 'POST', headers: HEADERS, body: JSON.stringify(row)
+  });
+  if (!res.ok) { setSyncState('error', 'Save failed'); const e = await res.text(); console.error(e); return null; }
+  setSyncState('synced', 'Synced');
+  return await res.json();
+}
+
+async function dbUpdate(table, id, row) {
+  setSyncState('syncing', 'Saving…');
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH', headers: HEADERS, body: JSON.stringify(row)
+  });
+  if (!res.ok) { setSyncState('error', 'Save failed'); return null; }
+  setSyncState('synced', 'Synced');
+  return await res.json();
+}
+
+async function dbDelete(table, id) {
+  setSyncState('syncing', 'Deleting…');
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE', headers: { ...HEADERS, 'Prefer': 'return=minimal' }
+  });
+  if (!res.ok) { setSyncState('error', 'Delete failed'); return; }
+  setSyncState('synced', 'Synced');
+}
+
+async function dbDeleteAll(table) {
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=neq.0`, {
+    method: 'DELETE', headers: { ...HEADERS, 'Prefer': 'return=minimal' }
+  });
+  return res.ok;
+}
+
+function setSyncState(state, label) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = label;
+}
+
+// ── Item emoji ──
+const itemEmoji = (name = '') => {
+  const n = name.toLowerCase();
+  if (n.includes('rack') || n.includes('shelf') || n.includes('shelv')) return '🗄️';
+  if (n.includes('sofa') || n.includes('couch')) return '🛋️';
+  if (n.includes('ping') || n.includes('table')) return '🏓';
+  if (n.includes('plant')) return '🪴';
+  if (n.includes('stone') || n.includes('tray')) return '🪨';
+  if (n.includes('bar')) return '🪑';
+  return '📦';
+};
+
+// ── Default templates ──
+function getDefaultTmpls() {
+  return [
+    { id: 1, title: 'First response', cat: 'green', text: "Yes still available! A few people have reached out this week — first one who can do pickup in Woodland Hills gets it. What day works for you?" },
+    { id: 2, title: 'Bundle upsell', cat: 'blue', text: "Still available at $75. If you need more than one I can do $65 each — a lot of people grab 2–3 to organize a whole garage. Let me know!" },
+    { id: 3, title: 'Cold follow-up', cat: 'blue', text: "Hey [NAME]! Just checking back — I still have this available. Let me know if the timing works out or if you have any questions." },
+    { id: 4, title: 'Negotiation counter', cat: 'orange', text: "I appreciate the offer! Best I can do is [PRICE]. It's brand new and ready for pickup in Woodland Hills — would that work for you?" },
+    { id: 5, title: 'Meetup confirmation', cat: 'yellow', text: "Hey [NAME]! Just confirming we're still on for [DAY] pickup in Woodland Hills. I'll send the address when you're on your way. Cash works great!" },
+    { id: 6, title: 'Delivery offer', cat: 'green', text: "Yes available! I can also deliver within Woodland Hills / West Valley area for a small fee. Would that make it easier for you?" },
+    { id: 7, title: 'Price drop alert', cat: 'orange', text: "Hey! I just dropped the price on this — wanted to let you know since you saved the listing. Still interested? Happy to hold it for you." },
+    { id: 8, title: 'Closing message', cat: 'yellow', text: "Great news — it's yours! My address is [ADDRESS], Woodland Hills. See you [DAY]! Bring cash and I'll have it ready. Thanks!" }
+  ];
+}
+
+// ── Stats ──
+function renderStats() {
+  const all = leads.length;
+  const pend = leads.filter(l => l.status === 'pending').length;
+  const sched = leads.filter(l => l.status === 'scheduled').length;
+  const sold = leads.filter(l => l.status === 'sold').length;
+  const canc = leads.filter(l => l.status === 'cancelled').length;
+  const rev = leads.filter(l => l.status !== 'cancelled').reduce((s, l) => {
+    const p = parseFloat((l.price || '').replace(/[^0-9.]/g, '')) || SELL;
+    return s + (l.units || 1) * p;
+  }, 0);
+  const profit = leads.filter(l => l.status === 'sold').reduce((s, l) => {
+    const p = parseFloat((l.price || '').replace(/[^0-9.]/g, '')) || SELL;
+    return s + (l.units || 1) * (p - COST);
+  }, 0);
+  $('s-total', all); $('s-revenue', '$' + rev.toFixed(2)); $('s-pending', pend);
+  $('s-scheduled', sched); $('s-profit', '$' + profit.toFixed(2));
+  $('fc-all', all); $('fc-pending', pend); $('fc-scheduled', sched);
+  $('fc-sold', sold); $('fc-cancelled', canc);
+  renderItemChips();
+}
+
+function $(id, v) { const e = document.getElementById(id); if (e) e.textContent = v; }
+
+function renderItemChips() {
+  const row = document.getElementById('item-filter-row');
+  row.querySelectorAll('[data-f="item"]:not([data-v="all"])').forEach(c => c.remove());
+  [...new Set(leads.map(l => l.item).filter(Boolean))].forEach(item => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (aFilters.item === item ? ' active' : '');
+    c.setAttribute('data-f', 'item'); c.setAttribute('data-v', item);
+    c.onclick = function () { setF('item', item, this); };
+    c.textContent = itemEmoji(item) + ' ' + item;
+    row.appendChild(c);
+  });
+}
+
+// ── Table ──
+function renderTable() {
+  const tbody = document.getElementById('leads-tbody');
+  const q = (document.getElementById('search-input') || {}).value?.toLowerCase() || '';
+  let rows = leads.filter(l => {
+    if (aFilters.status !== 'all' && l.status !== aFilters.status) return false;
+    if (aFilters.item !== 'all' && l.item !== aFilters.item) return false;
+    if (q && !(`${l.name || ''} ${l.item || ''} ${l.notes || ''} ${l.meetup || ''}`.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  rows.sort((a, b) => {
+    const av = String(a[sortK] || '').toLowerCase(), bv = String(b[sortK] || '').toLowerCase();
+    return av < bv ? -sortD : av > bv ? sortD : 0;
+  });
+  $('showing-count', rows.length);
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6"><div class="eico">📭</div><div>No meetups found</div></td></tr>`;
+    return;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; }
-  .header {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(14,15,17,0.92); backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;
+  tbody.innerHTML = '';
+  rows.forEach(lead => {
+    const units = lead.units || 1;
+    const priceNum = parseFloat((lead.price || '').replace(/[^0-9.]/g, '')) || SELL;
+    const margin = priceNum - COST;
+    const priceStr = units > 1
+      ? `$${priceNum} × ${units} = $${priceNum * units} (+$${margin.toFixed(2)}/ea)`
+      : `$${priceNum} (+$${margin.toFixed(2)})`;
+    const badgeMap = {
+      pending: 'sb-pending',
+      scheduled: 'sb-scheduled',
+      sold: 'sb-sold',
+      cancelled: 'sb-cancelled'
+    };
+    const badgeLabelMap = {
+      pending: '⏳ Pending',
+      scheduled: '📅 Scheduled',
+      sold: '✅ Sold',
+      cancelled: '❌ Cancelled'
+    };
+    const bClass = badgeMap[lead.status || 'pending'] || 'sb-pending';
+    const bLabel = badgeLabelMap[lead.status || 'pending'] || '⏳ Pending';
+    const badge = `<span class="sbadge ${bClass}">${bLabel}</span>`;
+    const dtStr = lead.datetime
+      ? new Date(lead.datetime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : 'Time TBD';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="item-cell">
+        <div class="item-ico">${itemEmoji(lead.item)}</div>
+        <div><div class="item-name">${lead.item || 'Storage Racks'}</div><div class="item-price">${priceStr}</div></div>
+      </div></td>
+      <td><div class="buyer-name">${lead.name || 'Unknown'}</div><div class="buyer-src">${lead.source || 'Facebook Marketplace'}</div></td>
+      <td><div class="meetup-main">${lead.meetup || 'TBD — buyer picking up'}</div><div class="meetup-time">${dtStr}</div></td>
+      <td>${badge}</td>
+      <td><div class="notes-cell">${lead.notes || '—'}</div></td>
+      <td><div class="act-btns">
+        <button class="act-btn" onclick="editLead(${lead.id})">Edit</button>
+        <button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button>
+      </div></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function sortBy(k) { sortK === k ? sortD *= -1 : (sortK = k, sortD = 1); renderTable(); }
+function setF(type, val, el) {
+  aFilters[type] = val;
+  document.querySelectorAll(`[data-f="${type}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); renderTable();
+}
+
+// ── Lead Modal ──
+function openAddModal() {
+  document.getElementById('modal-title').textContent = 'Add Meetup';
+  document.getElementById('edit-id').value = '';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-source').value = 'Facebook Marketplace';
+  document.getElementById('m-item').value = 'Storage Racks';
+  document.getElementById('m-price').value = '$75';
+  document.getElementById('m-units').value = '1';
+  document.getElementById('m-status').value = 'pending';
+  document.getElementById('m-meetup').value = '';
+  document.getElementById('m-datetime').value = '';
+  document.getElementById('m-notes').value = '';
+  openM('lead-modal');
+}
+
+function editLead(id) {
+  const l = leads.find(x => x.id === id); if (!l) return;
+  document.getElementById('modal-title').textContent = 'Edit Meetup';
+  document.getElementById('edit-id').value = id;
+  document.getElementById('m-name').value = l.name || '';
+  document.getElementById('m-source').value = l.source || 'Facebook Marketplace';
+  document.getElementById('m-item').value = l.item || 'Storage Racks';
+  document.getElementById('m-price').value = l.price || '$75';
+  document.getElementById('m-units').value = l.units || 1;
+  document.getElementById('m-status').value = l.status || 'pending';
+  document.getElementById('m-meetup').value = l.meetup || '';
+  document.getElementById('m-datetime').value = l.datetime || '';
+  document.getElementById('m-notes').value = l.notes || '';
+  openM('lead-modal');
+}
+
+async function saveLead() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { toast('Buyer name required'); return; }
+  const eid = document.getElementById('edit-id').value;
+  const row = {
+    name,
+    source: document.getElementById('m-source').value,
+    item: document.getElementById('m-item').value || 'Storage Racks',
+    price: document.getElementById('m-price').value || '$75',
+    units: parseInt(document.getElementById('m-units').value) || 1,
+    status: document.getElementById('m-status').value,
+    meetup: document.getElementById('m-meetup').value,
+    datetime: document.getElementById('m-datetime').value,
+    notes: document.getElementById('m-notes').value,
+    added_at: new Date().toLocaleString()
+  };
+  if (eid) {
+    await dbUpdate('leads', eid, row);
+    const idx = leads.findIndex(l => l.id == eid);
+    if (idx >= 0) leads[idx] = { ...leads[idx], ...row };
+    toast('✓ Meetup updated');
+  } else {
+    row.id = Date.now();
+    const saved = await dbInsert('leads', row);
+    if (saved) leads.unshift(saved[0] || row);
+    toast('✓ Meetup saved to cloud');
   }
-  .logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo span { color: var(--accent); }
-  .lead-count-pill {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 99px; padding: 4px 12px; font-size: 12px;
-    font-family: 'DM Mono', monospace; color: var(--muted);
+  renderTable(); renderStats(); closeM('lead-modal');
+}
+
+async function deleteLead(id) {
+  await dbDelete('leads', id);
+  leads = leads.filter(l => l.id !== id);
+  renderTable(); renderStats(); toast('Meetup removed');
+}
+
+// ── Scan ──
+document.getElementById('file-input').addEventListener('change', e => { handleFiles(Array.from(e.target.files)); e.target.value = ''; });
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); handleFiles(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'))); });
+
+function handleFiles(files) {
+  uploads = [...uploads, ...files]; renderPreviews();
+  document.getElementById('analyze-btn').disabled = false;
+  document.getElementById('analyze-label').textContent = `Analyze ${uploads.length} screenshot${uploads.length > 1 ? 's' : ''}`;
+}
+function renderPreviews() {
+  const s = document.getElementById('pstrip'); s.style.display = uploads.length ? 'flex' : 'none'; s.innerHTML = '';
+  uploads.forEach((f, i) => {
+    const url = URL.createObjectURL(f); const w = document.createElement('div'); w.className = 'pwrap';
+    w.innerHTML = `<img class="pthumb" src="${url}"><div class="premove" onclick="rmFile(${i})">✕</div>`; s.appendChild(w);
+  });
+}
+function rmFile(i) {
+  uploads.splice(i, 1); renderPreviews();
+  if (!uploads.length) { document.getElementById('analyze-btn').disabled = true; document.getElementById('analyze-label').textContent = 'Select screenshots first'; }
+  else document.getElementById('analyze-label').textContent = `Analyze ${uploads.length} screenshot${uploads.length > 1 ? 's' : ''}`;
+}
+function b64(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); }); }
+
+async function analyzeShots() {
+  if (!uploads.length) return;
+  const key = localStorage.getItem('rs_apikey') || '';
+  if (!key) { toast('⚠️ Add API key in Save tab'); switchPage('save'); return; }
+  const btn = document.getElementById('analyze-btn'), ov = document.getElementById('scanning');
+  btn.disabled = true; ov.classList.add('active');
+  const newLeads = [];
+  for (let i = 0; i < uploads.length; i++) {
+    document.getElementById('scan-status').textContent = `Screenshot ${i + 1} of ${uploads.length}`;
+    try {
+      const data = await b64(uploads[i]);
+      const lead = await extractLead(data, uploads[i].type || 'image/jpeg', key);
+      if (lead) newLeads.push(lead);
+    } catch (e) { console.error(e); }
   }
-  .lead-count-pill b { color: var(--accent); }
-  .tabs {
-    display: flex; gap: 4px; padding: 12px 16px;
-    background: var(--bg); border-bottom: 1px solid var(--border);
-    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  ov.classList.remove('active'); btn.disabled = false;
+  if (newLeads.length) {
+    const existing = leads.map(l => l.name?.toLowerCase());
+    const fresh = newLeads.filter(l => !existing.includes(l.name?.toLowerCase()));
+    for (const lead of fresh) {
+      lead.id = Date.now() + Math.random();
+      lead.added_at = new Date().toLocaleString();
+      const saved = await dbInsert('leads', lead);
+      leads.unshift(saved ? (saved[0] || lead) : lead);
+    }
+    uploads = []; renderPreviews();
+    document.getElementById('analyze-label').textContent = 'Select screenshots first';
+    renderTable(); renderStats();
+    toast(`✓ ${fresh.length} lead${fresh.length !== 1 ? 's' : ''} saved to cloud`);
+    switchPage('dashboard');
+  } else { toast('No leads found — check API key'); }
+}
+
+async function extractLead(data, mt, key) {
+  const prompt = `Analyze this Facebook Marketplace seller screenshot and extract buyer info.
+Return ONLY valid JSON, no markdown:
+{"name":"buyer full name","source":"Facebook Marketplace","item":"item name e.g. Storage Racks","price":"$75","units":1,"status":"pending","meetup":"TBD — buyer picking up","notes":"key conversation details","suggested_reply":"closing reply mentioning Woodland Hills pickup and soft urgency"}
+If not a Marketplace screenshot return: {"error":"not marketplace"}`;
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: mt, data } }, { type: 'text', text: prompt }] }] })
+  });
+  const d = await res.json();
+  const t = d.content?.find(b => b.type === 'text')?.text || '';
+  try { const p = JSON.parse(t.replace(/```json|```/g, '').trim()); return p.error ? null : p; } catch (e) { return null; }
+}
+
+// ── Calendar ──
+async function addCalEvent() {
+  const name = document.getElementById('cal-name').value.trim();
+  const dt = document.getElementById('cal-datetime').value;
+  if (!name || !dt) { toast('Name and date required'); return; }
+  const ev = {
+    id: Date.now(),
+    name, datetime: dt,
+    location: document.getElementById('cal-location').value,
+    notes: document.getElementById('cal-notes').value
+  };
+  const saved = await dbInsert('events', ev);
+  events.push(saved ? (saved[0] || ev) : ev);
+  renderEvents();
+  document.getElementById('cal-name').value = '';
+  document.getElementById('cal-datetime').value = '';
+  document.getElementById('cal-notes').value = '';
+  toast('✓ Meetup saved to cloud');
+}
+
+function renderEvents() {
+  const list = document.getElementById('ev-list'), wrap = document.getElementById('ev-list-wrap'), empty = document.getElementById('ev-empty');
+  list.innerHTML = '';
+  const upcoming = [...events].filter(e => new Date(e.datetime) >= new Date(Date.now() - 86400000)).sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+  if (!upcoming.length) { empty.style.display = 'block'; wrap.style.display = 'none'; return; }
+  empty.style.display = 'none'; wrap.style.display = 'block';
+  upcoming.forEach(ev => {
+    const d = new Date(ev.datetime);
+    const row = document.createElement('div'); row.className = 'ev-row';
+    row.innerHTML = `<div class="ev-date"><div class="ev-day">${d.getDate()}</div><div class="ev-mon">${d.toLocaleString('default', { month: 'short' })}</div></div><div class="ev-info"><div class="ev-name">${ev.name}</div><div class="ev-detail">${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${ev.location || 'Woodland Hills'}${ev.notes ? ' · ' + ev.notes : ''}</div></div><div class="ev-del" onclick="delEv(${ev.id})">🗑</div>`;
+    list.appendChild(row);
+  });
+}
+
+async function delEv(id) {
+  await dbDelete('events', id);
+  events = events.filter(e => e.id !== id);
+  renderEvents(); toast('Event removed');
+}
+
+function exportCal() {
+  if (!events.length) { toast('No events to export'); return; }
+  const next = [...events].sort((a, b) => new Date(a.datetime) - new Date(b.datetime))[0];
+  const d = new Date(next.datetime), end = new Date(d.getTime() + 3600000);
+  const fmt = x => x.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Rack pickup – ' + next.name)}&dates=${fmt(d)}/${fmt(end)}&location=${encodeURIComponent(next.location || 'Woodland Hills, CA')}&details=${encodeURIComponent(next.notes || 'Storage rack pickup')}`, '_blank');
+}
+
+// ── Templates ──
+function renderTmpls() {
+  const list = document.getElementById('tmpl-list'); list.innerHTML = '';
+  const defLen = getDefaultTmpls().length;
+  const catMap = { green: 'First response', blue: 'Follow-up', orange: 'Negotiation', yellow: 'Confirm' };
+  templates.forEach((t, i) => {
+    const card = document.createElement('div'); card.className = 'tmpl-card';
+    const isCustom = i >= defLen;
+    card.innerHTML = `
+      <div class="tmpl-hdr" onclick="togTmpl(${t.id})">
+        <div class="tmpl-title-wrap"><span class="ttag tt-${t.cat}">${catMap[t.cat] || ''}</span><div class="tmpl-name">${t.title}</div></div>
+        <span style="font-size:12px;color:#bcc0c4;">▾</span>
+      </div>
+      <div class="tmpl-body" id="tb-${t.id}">
+        <div class="tmpl-txt" id="tt-${t.id}">${t.text}</div>
+        <div class="tmpl-hint">Placeholders: [NAME] [PRICE] [DAY] [ADDRESS]</div>
+        <div class="tmpl-actions">
+          <button class="act-btn" onclick="cpEl('tt-${t.id}')">📋 Copy</button>
+          ${isCustom ? `<button class="act-btn danger" onclick="delTmpl(${t.id})">🗑 Delete</button>` : ''}
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+function togTmpl(id) { document.getElementById(`tb-${id}`).classList.toggle('open'); }
+function delTmpl(id) { templates = templates.filter(t => t.id !== id); renderTmpls(); toast('Template deleted'); }
+function saveTmpl() {
+  const title = document.getElementById('tn-title').value.trim(), text = document.getElementById('tn-text').value.trim();
+  if (!title || !text) { toast('Title and message required'); return; }
+  templates.push({ id: Date.now(), title, cat: document.getElementById('tn-cat').value, text });
+  renderTmpls(); closeM('tmpl-modal');
+  document.getElementById('tn-title').value = ''; document.getElementById('tn-text').value = '';
+  toast('✓ Template saved');
+}
+
+// ── Save / Export ──
+function saveKey() { localStorage.setItem('rs_apikey', document.getElementById('api-key-input').value); }
+
+function exportJSON() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ leads, events, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' }));
+  a.download = `rackscout-${Date.now()}.json`; a.click(); toast('✓ JSON exported');
+}
+
+function exportCSV() {
+  const rows = [['Name', 'Source', 'Item', 'Price', 'Units', 'Status', 'Meetup', 'Notes', 'Added']];
+  leads.forEach(l => rows.push([l.name || '', l.source || '', l.item || '', l.price || '', l.units || 1, l.status || '', l.meetup || '', l.notes || '', l.added_at || '']));
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `rackscout-leads-${Date.now()}.csv`; a.click(); toast('✓ CSV exported');
+}
+
+async function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = async ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d.leads) {
+        for (const lead of d.leads) { await dbInsert('leads', lead); }
+      }
+      await loadAll();
+      toast(`✓ Imported ${d.leads?.length || 0} leads`);
+    } catch (err) { toast('Import failed'); }
+  };
+  r.readAsText(file);
+}
+
+function copySummary() {
+  const sched = leads.filter(l => l.status === 'scheduled'), pend = leads.filter(l => l.status === 'pending');
+  let t = `RACKSCOUT SUMMARY — ${new Date().toLocaleDateString()}\n\n📅 SCHEDULED (${sched.length})\n${'─'.repeat(28)}\n`;
+  sched.forEach(l => { t += `• ${l.name} — ${l.item || 'rack'} @ ${l.price || '$75'} · ${l.notes || ''}\n`; });
+  t += `\n⏳ PENDING (${pend.length})\n${'─'.repeat(28)}\n`;
+  pend.forEach(l => { t += `• ${l.name} — ${l.item || 'rack'} @ ${l.price || '$75'}\n`; });
+  navigator.clipboard.writeText(t).then(() => toast('✓ Summary copied')).catch(() => toast('Copy failed'));
+}
+
+async function clearAll() {
+  if (!confirm('Delete ALL leads and events from the cloud database? This cannot be undone.')) return;
+  await dbDeleteAll('leads');
+  await dbDeleteAll('events');
+  leads = []; events = [];
+  renderTable(); renderStats(); renderEvents(); toast('All cloud data cleared');
+}
+
+// ── Navigation ──
+const pages = ['dashboard', 'scan', 'calendar', 'templates', 'save'];
+function switchPage(name) {
+  pages.forEach(p => { document.getElementById(`page-${p}`).classList.toggle('active', p === name); });
+  document.querySelectorAll('.ptab').forEach((t, i) => t.classList.toggle('active', pages[i] === name));
+  document.querySelectorAll('.bnitem').forEach((t, i) => t.classList.toggle('active', pages[i] === name));
+}
+
+// ── Utilities ──
+function cpEl(id) {
+  const el = document.getElementById(id); if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => toast('✓ Copied!')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = el.textContent;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('✓ Copied!');
+  });
+}
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+
+// ── Load all data from Supabase ──
+async function loadAll() {
+  setSyncState('syncing', 'Loading…');
+  try {
+    leads = await dbGet('leads');
+    events = await dbGet('events');
+    renderTable(); renderStats(); renderEvents();
+    setSyncState('synced', 'Synced ✓');
+  } catch (e) {
+    setSyncState('error', 'Offline');
+    toast('Could not connect to cloud — check connection');
   }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab {
-    flex-shrink: 0; padding: 7px 16px; border-radius: 99px;
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    border: 1px solid var(--border); color: var(--muted);
-    background: transparent; transition: all .2s;
-  }
-  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
-  .view { display: none; padding: 16px; padding-bottom: 100px; }
-  .view.active { display: block; }
-  .upload-zone {
-    border: 2px dashed var(--border); border-radius: var(--card-r);
-    padding: 40px 20px; text-align: center; cursor: pointer;
-    transition: all .25s; position: relative; overflow: hidden;
-    background: var(--surface);
-  }
-  .upload-zone.drag { border-color: var(--accent); background: rgba(0,229,160,0.05); }
-  .upload-zone:active { transform: scale(0.98); }
-  .upload-icon {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: rgba(0,229,160,0.1); display: flex; align-items: center;
-    justify-content: center; margin: 0 auto 16px; font-size: 24px;
-  }
-  .upload-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-  .upload-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
-  #file-input { display: none; }
-  .preview-strip {
-    display: flex; gap: 10px; overflow-x: auto; padding: 12px 0;
-    -webkit-overflow-scrolling: touch;
-  }
-  .preview-strip::-webkit-scrollbar { display: none; }
-  .preview-thumb {
-    flex-shrink: 0; width: 72px; height: 72px; border-radius: 10px;
-    object-fit: cover; border: 2px solid var(--border);
-  }
-  .preview-wrap { position: relative; flex-shrink: 0; }
-  .preview-remove {
-    position: absolute; top: -6px; right: -6px;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: var(--warn); color: #fff; font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-weight: 700; border: 2px solid var(--bg);
-  }
-  .analyze-btn {
-    width: 100%; padding: 16px; border-radius: var(--card-r);
-    background: var(--accent); color: #000; font-family: 'Syne', sans-serif;
-    font-size: 16px; font-weight: 700; border: none; cursor: pointer;
-    margin-top: 14px; transition: all .2s;
-  }
-  .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .analyze-btn:not(:disabled):active { transform: scale(0.97); }
-  .scanning-overlay {
-    background: var(--surface); border-radius: var(--card-r);
-    padding: 32px 20px; text-align: center; margin-top: 14px; display: none;
-  }
-  .scanning-overlay.active { display: block; }
-  .pulse-ring {
-    width: 64px; height: 64px; border-radius: 50%;
-    border: 3px solid var(--accent); margin: 0 auto 20px;
-    animation: pulse-scale 1.4s ease-in-out infinite;
-  }
-  @keyframes pulse-scale {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.08); opacity: 0.7; }
-  }
-  .scan-label { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-  .scan-sub { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .lead-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--card-r); margin-bottom: 12px; overflow: hidden;
-    animation: slide-up .3s ease both;
-  }
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .lead-card-header {
-    padding: 14px 16px; display: flex; align-items: center;
-    gap: 12px; cursor: pointer;
-  }
-  .lead-avatar {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700;
-  }
-  .lead-name { font-size: 15px; font-weight: 700; }
-  .lead-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-  .lead-status-dot { width: 8px; height: 8px; border-radius: 50%; margin-left: auto; flex-shrink: 0; }
-  .status-hot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-  .status-warm { background: #ffcc00; box-shadow: 0 0 8px #ffcc00; }
-  .status-cold { background: var(--muted); }
-  .lead-card-body { padding: 0 16px 16px; border-top: 1px solid var(--border); display: none; }
-  .lead-card-body.open { display: block; padding-top: 14px; }
-  .detail-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .detail-label { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .detail-val { font-size: 13px; font-weight: 600; text-align: right; max-width: 60%; }
-  .last-msg-box {
-    background: var(--surface2); border-radius: 10px; padding: 10px 12px;
-    font-size: 13px; color: var(--muted); line-height: 1.5;
-    font-style: italic; margin: 10px 0; border-left: 3px solid var(--border);
-  }
-  .reply-box {
-    background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2);
-    border-radius: 10px; padding: 10px 12px; font-size: 13px;
-    line-height: 1.6; margin-top: 10px; color: var(--text);
-  }
-  .reply-label {
-    font-size: 10px; font-weight: 700; color: var(--accent);
-    letter-spacing: .08em; margin-bottom: 6px; font-family: 'DM Mono', monospace;
-  }
-  .copy-btn {
-    width: 100%; margin-top: 8px; padding: 10px;
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s;
-  }
-  .copy-btn:active { background: var(--accent); color: #000; }
-  .profit-badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25);
-    border-radius: 99px; padding: 4px 10px;
-    font-size: 12px; font-weight: 700; color: var(--accent);
-    font-family: 'DM Mono', monospace; margin-top: 10px;
-  }
-  .stats-row {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px;
-  }
-  .stat-box {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 12px; text-align: center;
-  }
-  .stat-num { font-size: 22px; font-weight: 800; color: var(--accent); font-family: 'DM Mono', monospace; }
-  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
-  .empty-state .e-icon { font-size: 48px; margin-bottom: 16px; opacity​​​​​​​​​​​​​​​​
+}
+
+// ── Init ──
+const k = localStorage.getItem('rs_apikey');
+if (k) document.getElementById('api-key-input').value = k;
+document.getElementById('tn-date').textContent = new Date().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+renderTmpls();
+loadAll();
+</script>
+</body>
+</html>
