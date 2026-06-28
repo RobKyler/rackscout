@@ -916,17 +916,17 @@ function exportCSV(){
   a.download=`rackscout-leads-${Date.now()}.csv`;a.click();toast('✓ CSV exported');
 }
 // Clean a lead row before sending to Supabase
-function cleanLead(lead) {
+function cleanLead(lead, index) {
   return {
-    id: lead.id || Date.now() + Math.floor(Math.random()*1000),
+    id: (lead.id && lead.id < 9007199254740991) ? lead.id : (Date.now() + (index || Math.floor(Math.random()*9999))),
     name: lead.name || 'Unknown',
     source: lead.source || 'Facebook Marketplace',
     item: lead.item || 'Storage Racks',
     price: lead.price || '',
-    units: lead.units || 1,
+    units: (lead.units === null || lead.units === undefined) ? 1 : lead.units,
     status: ['pending','scheduled','sold','cancelled'].includes(lead.status) ? lead.status : 'pending',
     meetup: lead.meetup || 'TBD',
-    datetime: lead.datetime || '',
+    datetime: (lead.datetime && lead.datetime !== '') ? lead.datetime : null,
     notes: lead.notes || '',
     suggested_reply: lead.suggested_reply || '',
     added_at: lead.added_at || new Date().toLocaleString()
@@ -985,7 +985,7 @@ async function importAndReplace(e) {
       // Insert all new leads in batches of 10
       const batchSize = 10;
       for (let i = 0; i < arr.length; i += batchSize) {
-        const batch = arr.slice(i, i + batchSize).map(cleanLead);
+        const batch = arr.slice(i, i + batchSize).map((lead, j) => cleanLead(lead, i + j));
         progText.textContent = `Step 2/3 — Uploading leads ${i+1}–${Math.min(i+batchSize, arr.length)} of ${arr.length}…`;
         const res = await fetch(`${SUPA_URL}/rest/v1/leads`, {
           method: 'POST',
