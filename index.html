@@ -338,9 +338,18 @@ select.fi{cursor:pointer;}
       <div class="export-grid">
         <button class="ebtn" onclick="exportJSON()"><span class="ei">📤</span><span class="el">JSON Backup</span></button>
         <button class="ebtn" onclick="exportCSV()"><span class="ei">📊</span><span class="el">CSV Export</span></button>
-        <button class="ebtn" onclick="document.getElementById('import-input').click()"><span class="ei">📥</span><span class="el">Import</span></button>
+        <button class="ebtn" onclick="document.getElementById('import-input').click()"><span class="ei">📥</span><span class="el">Add Import</span></button>
       </div>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="sp-card" style="border-color:#93c5fd;background:#eff6ff;">
+      <div class="sp-title" style="color:#1877f2;">🔄 Import & Replace All</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Wipes all current cloud leads and replaces with your new JSON file. Use this when Claude Chrome gives you a fresh full export. Handles null values automatically.</div>
+      <button class="btn-save" onclick="document.getElementById('replace-input').click()" style="width:100%;padding:12px;">📂 Choose JSON file to replace all leads</button>
+      <input type="file" id="replace-input" accept=".json" style="display:none" onchange="importAndReplace(event)">
+      <div id="import-progress" style="display:none;margin-top:12px;background:#fff;border-radius:8px;padding:12px;font-size:13px;color:#1877f2;border:1px solid #93c5fd;">
+        <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:#1877f2;animation:sdpulse 1s infinite;"></div><span id="import-progress-text">Importing…</span></div>
+      </div>
     </div>
     <div class="sp-card">
       <div class="sp-title">Copy Lead Summary</div>
@@ -906,16 +915,99 @@ function exportCSV(){
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=`rackscout-leads-${Date.now()}.csv`;a.click();toast('✓ CSV exported');
 }
-async function importData(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=async ev=>{
-    try{
-      const d=JSON.parse(ev.target.result);
-      if(d.leads){for(const lead of d.leads){await dbInsert('leads',lead);}}
-      await loadAll();
-      toast(`✓ Imported ${d.leads?.length||0} leads`);
-    }catch(err){toast('Import failed');}
+// Clean a lead row before sending to Supabase
+function cleanLead(lead) {
+  return {
+    id: lead.id || Date.now() + Math.floor(Math.random()*1000),
+    name: lead.name || 'Unknown',
+    source: lead.source || 'Facebook Marketplace',
+    item: lead.item || 'Storage Racks',
+    price: lead.price || '',
+    units: lead.units || 1,
+    status: ['pending','scheduled','sold','cancelled'].includes(lead.status) ? lead.status : 'pending',
+    meetup: lead.meetup || 'TBD',
+    datetime: lead.datetime || '',
+    notes: lead.notes || '',
+    suggested_reply: lead.suggested_reply || '',
+    added_at: lead.added_at || new Date().toLocaleString()
+  };
+}
+
+async function importData(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  const r = new FileReader();
+  r.onload = async ev => {
+    try {
+      let data = JSON.parse(ev.target.result);
+      // Handle both array and {leads:[]} formats
+      const arr = Array.isArray(data) ? data : (data.leads || []);
+      if (!arr.length) { toast('No leads found in file'); return; }
+      setSyncState('syncing', 'Importing…');
+      let count = 0;
+      for (const lead of arr) {
+        const clean = cleanLead(lead);
+        const saved = await dbInsert('leads', clean);
+        if (saved) { leads.unshift(saved[0] || clean); count++; }
+      }
+      setSyncState('live', 'Live ●');
+      renderTable(); renderStats();
+      toast(`✓ Added ${count} leads to cloud`);
+    } catch(err) { console.error(err); toast('Import failed — check JSON format'); }
+  };
+  r.readAsText(file);
+}
+
+async function importAndReplace(e) {
+  const file = e.target.files[0]; if (!file) return;
+  e.target.value = '';
+  const prog = document.getElementById('import-progress');
+  const progText = document.getElementById('import-progress-text');
+  const r = new FileReader();
+  r.onload = async ev => {
+    try {
+      let data = JSON.parse(ev.target.result);
+      const arr = Array.isArray(data) ? data : (data.leads || []);
+      if (!arr.length) { toast('No leads found in file'); return; }
+      if (!confirm(`This will DELETE all ${leads.length} current leads and replace with ${arr.length} new leads from the file. Continue?`)) return;
+      prog.style.display = 'block';
+      progText.textContent = 'Step 1/3 — Clearing existing leads from cloud…';
+      setSyncState('syncing', 'Clearing…');
+      // Delete all existing leads
+      if (leads.length > 0) {
+        await fetch(`${SUPA_URL}/rest/v1/leads?id=gte.0`, {
+          method: 'DELETE',
+          headers: { ...HEADERS, 'Prefer': 'return=minimal' }
+        });
+      }
+      leads = [];
+      progText.textContent = `Step 2/3 — Uploading ${arr.length} leads to cloud…`;
+      // Insert all new leads in batches of 10
+      const batchSize = 10;
+      for (let i = 0; i < arr.length; i += batchSize) {
+        const batch = arr.slice(i, i + batchSize).map(cleanLead);
+        progText.textContent = `Step 2/3 — Uploading leads ${i+1}–${Math.min(i+batchSize, arr.length)} of ${arr.length}…`;
+        const res = await fetch(`${SUPA_URL}/rest/v1/leads`, {
+          method: 'POST',
+          headers: HEADERS,
+          body: JSON.stringify(batch)
+        });
+        if (res.ok) {
+          const saved = await res.json();
+          leads.push(...(saved || batch));
+        }
+      }
+      progText.textContent = 'Step 3/3 — Done!';
+      setSyncState('live', 'Live ●');
+      renderTable(); renderStats();
+      setTimeout(() => { prog.style.display = 'none'; }, 2000);
+      toast(`✓ Replaced all leads — ${arr.length} loaded from file`);
+    } catch(err) {
+      console.error(err);
+      prog.style.display = 'none';
+      setSyncState('error', 'Import failed');
+      toast('Import failed — check JSON format');
+    }
   };
   r.readAsText(file);
 }
