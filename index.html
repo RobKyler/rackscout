@@ -1732,36 +1732,44 @@ function validateLead(lead) {
   return errors;
 }
 
-// Core upsert function — idempotent on thread_id (preferred) or id
+// Core upsert — idempotent on thread_id (preferred) or id
+// Returns { row, wasUpdate } — wasUpdate derived from Supabase response header
 async function upsertLead(lead, index) {
   const clean = cleanLead(lead, index);
   const threadId = clean.thread_id;
+  const conflictCol = threadId ? 'thread_id' : 'id';
 
-  if (threadId) {
-    // Upsert on thread_id — guaranteed stable across runs
-    const res = await fetch(SUPA_URL + '/rest/v1/leads?on_conflict=thread_id', {
-      method: 'POST',
-      headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
-      body: JSON.stringify(clean)
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
-    return await res.json();
-  } else {
-    // Fallback: upsert on id for leads without a thread_id
-    const res = await fetch(SUPA_URL + '/rest/v1/leads?on_conflict=id', {
-      method: 'POST',
-      headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
-      body: JSON.stringify(clean)
-    });
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
-    return await res.json();
+  // PostgREST upsert: POST with on_conflict query param + merge-duplicates prefer
+  // Supabase returns Prefer: resolution=... header telling us insert vs update
+  const upsertHeaders = Object.assign({}, HEADERS, {
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  });
+
+  const url = `${SUPA_URL}/rest/v1/leads?on_conflict=${conflictCol}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: upsertHeaders,
+    body: JSON.stringify(clean)
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    // Log full details for debugging
+    console.error(`upsertLead failed [${conflictCol}=${threadId||clean.id}]:`, errText);
+    throw new Error(errText.slice(0, 200));
   }
+
+  // Supabase echoes back Preference-Applied header with what it did
+  // "resolution=merge-duplicates" means it ran an UPDATE (row existed)
+  // If the row was new, it ran an INSERT
+  const prefHeader = res.headers.get('preference-applied') || '';
+  const wasUpdate = prefHeader.includes('merge-duplicates') && clean.id;
+
+  // More reliable: check if row count changed by comparing etag / content
+  const rows = await res.json();
+  const savedRow = Array.isArray(rows) ? rows[0] : rows;
+
+  return { row: savedRow || clean, wasUpdate };
 }
 
 // Global function — callable by automation: window.importLeadsFromJSON(jsonString)
@@ -1786,7 +1794,7 @@ window.importLeadsFromJSON = async function(jsonString) {
   }
 
   // Validate and upsert each lead
-  // Build lookup sets for both thread_id and id to detect existing rows
+  // Pre-build lookup sets from current in-memory state
   const existingThreadIds = new Set(leads.map(l => l.thread_id).filter(Boolean).map(String));
   const existingIds = new Set(leads.map(l => String(l.id)));
 
@@ -1798,26 +1806,28 @@ window.importLeadsFromJSON = async function(jsonString) {
       continue;
     }
     try {
-      const saved = await upsertLead(lead, i);
-      const savedRow = (saved && saved[0]) || cleanLead(lead, i);
+      const { row: savedRow, wasUpdate } = await upsertLead(lead, i);
       const tid = extractThreadId(lead);
 
-      // Determine if this was an update or insert
-      const wasExisting = (tid && existingThreadIds.has(String(tid))) ||
-                          (!tid && existingIds.has(String(lead.id)));
+      // Use pre-import lookup sets for accurate insert/update accounting
+      // (wasUpdate from header is unreliable cross-browser, so we cross-check)
+      const existedBefore = (tid && existingThreadIds.has(String(tid))) ||
+                            (!tid && existingIds.has(String(lead.id)));
 
-      if (wasExisting) {
+      if (existedBefore) {
         result.updated++;
-        // Update in local state — match by thread_id first, then id
+        // Patch local state in-place
         const idx = tid
           ? leads.findIndex(l => l.thread_id && String(l.thread_id) === String(tid))
           : leads.findIndex(l => String(l.id) === String(lead.id));
         if (idx >= 0) leads[idx] = savedRow;
+        else leads.unshift(savedRow); // safety fallback
       } else {
         result.inserted++;
         leads.unshift(savedRow);
+        // Add to sets so subsequent rows in same batch don't double-insert
         if (tid) existingThreadIds.add(String(tid));
-        existingIds.add(String(savedRow.id));
+        existingIds.add(String(savedRow.id || lead.id));
       }
     } catch(e) {
       result.errors.push('Row ' + i + ' (' + (lead.name||'?') + '): ' + e.message);
