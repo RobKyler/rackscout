@@ -806,10 +806,14 @@ function renderStats(){
     if (!price) return SELL;
     const match = String(price).match(/\d+(\.\d+)?/);
     const num = match ? parseFloat(match[0]) : NaN;
-    return (!isNaN(num) && num > 0 && num < 100000) ? num : SELL;
+    return (!isNaN(num) && num > 0 && num < 10000) ? num : SELL;
   };
   const rev=leads.filter(l=>l.status==='pending'||l.status==='scheduled').reduce((s,l)=>{
-    return s+(l.units||1)*parsePrice(l.price);
+    const perUnit = parsePrice(l.price);
+    const units = l.units || 1;
+    // If price already looks like a total (very high single price), don't multiply again
+    const contribution = (perUnit > 200 && units > 1) ? perUnit : perUnit * units;
+    return s + contribution;
   },0);
   const profit=leads.filter(l=>l.status==='sold').reduce((s,l)=>{
     return s+(l.units||1)*(parsePrice(l.price)-COST);
