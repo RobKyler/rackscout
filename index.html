@@ -1422,7 +1422,7 @@ async function clearAll(){
 // ── Metrics ──
 function renderMetrics() {
   updateCostGlobals();
-  const COST_NOW = COST_NOW;
+  const COST_NOW = COST;
   const parseP = (price) => {
     if (!price) return 75;
     const m = String(price).match(/\d+(\.\d+)?/);
