@@ -181,6 +181,26 @@ select.fi{cursor:pointer;}
 .gcal-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;}
 .gcal-status.connected{background:#e7f9ee;border:1px solid #86efac;color:#0d5c2b;}
 .gcal-status.disconnected{background:#fff8e1;border:1px solid #fcd34d;color:#92400e;}
+.m-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5;}
+.m-row:last-child{border-bottom:none;}
+.m-label{font-size:13px;color:#3c4043;}
+.m-val{font-size:14px;font-weight:700;color:#1c1e21;text-align:right;}
+.m-val.green{color:#1a7f37;}
+.m-val.blue{color:#1877f2;}
+.m-val.amber{color:#92400e;}
+.m-val.red{color:#8b1a1a;}
+.m-kpi{background:#fff;border:1px solid #e4e6ea;border-radius:12px;padding:16px;text-align:center;}
+.m-kpi-val{font-size:26px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
+.m-kpi-label{font-size:12px;color:#65676b;font-weight:500;}
+.funnel-bar-wrap{margin-bottom:10px;}
+.funnel-bar-label{display:flex;justify-content:space-between;font-size:12px;color:#65676b;margin-bottom:4px;}
+.funnel-bar-bg{background:#f0f2f5;border-radius:99px;height:10px;overflow:hidden;}
+.funnel-bar-fill{height:100%;border-radius:99px;transition:width .4s ease;}
+.top-lead-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f2f5;}
+.top-lead-row:last-child{border-bottom:none;}
+.top-lead-rank{width:28px;height:28px;border-radius:50%;background:#e7f0ff;color:#1877f2;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-lead-name{font-size:14px;font-weight:600;flex:1;}
+.top-lead-val{font-size:13px;font-weight:700;color:#1877f2;}
 @media(max-width:640px){
   .stats-bar,.table-area,.filter-panel,.subpage,.live-banner{margin-left:12px;margin-right:12px;}
   .stats-bar{padding-left:12px;padding-right:12px;}
@@ -214,6 +234,7 @@ select.fi{cursor:pointer;}
   <div class="ptab" onclick="switchPage('scan')">📸 Scan</div>
   <div class="ptab" onclick="switchPage('calendar')">📅 Calendar</div>
   <div class="ptab" onclick="switchPage('templates')">💬 Templates</div>
+  <div class="ptab" onclick="switchPage('metrics')">📊 Metrics</div>
   <div class="ptab" onclick="switchPage('save')">💾 Save</div>
 </div>
 
@@ -373,11 +394,131 @@ select.fi{cursor:pointer;}
         <div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:#1877f2;animation:sdpulse 1s infinite;"></div><span id="import-progress-text">Importing…</span></div>
       </div>
     </div>
+    <div class="sp-card" style="border-color:#16a34a;">
+      <div class="sp-title" style="color:#16a34a;">🤖 Paste JSON (Automation Import)</div>
+      <div class="sp-sub" style="margin-bottom:12px;">Paste a JSON array of leads directly — no file picker needed. Safe to run repeatedly: existing leads are updated, not duplicated. Used by automated/scheduled imports.</div>
+      <div class="fg">
+        <label>JSON ARRAY</label>
+        <textarea class="fi" id="paste-json-input" style="height:140px;font-family:monospace;font-size:12px;" placeholder='[{"id":1748000000001,"name":"Jim","item":"Storage Racks","price":"$60","units":15,"status":"scheduled","meetup":"Sunday 7/5","datetime":"2026-07-05T12:00","notes":"Wants 15 units @ $60 each","suggested_reply":"See you Sunday!","source":"Facebook Marketplace","added_at":"6/28/2026"}]'></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-save" onclick="importFromPaste()" style="flex:2;padding:12px;">🤖 Import from text</button>
+        <button class="btn-cancel" onclick="document.getElementById('paste-json-input').value=''" style="flex:1;padding:12px;">Clear</button>
+      </div>
+      <div id="paste-result" style="display:none;margin-top:10px;border-radius:8px;padding:10px 12px;font-size:13px;font-family:monospace;"></div>
+
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0f2f5;">
+        <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin-bottom:8px;">LEADS TABLE SCHEMA</div>
+        <div style="background:#f9fafb;border:1px solid #e4e6ea;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;line-height:1.8;color:#3c4043;overflow-x:auto;">
+<span style="color:#1877f2;">// Primary key (bigint, required)</span><br>
+id: number (e.g. 1748000000001)<br><br>
+<span style="color:#1877f2;">// Required fields</span><br>
+name: string — buyer full name<br>
+status: "pending" | "scheduled" | "sold" | "cancelled"<br><br>
+<span style="color:#1877f2;">// Optional fields</span><br>
+source: string — default "Facebook Marketplace"<br>
+item: string — default "Storage Racks"<br>
+price: string — e.g. "$75" or "$60" (per unit)<br>
+units: number — quantity buyer wants<br>
+meetup: string — e.g. "TBD — buyer picking up"<br>
+datetime: string — ISO format "2026-07-05T12:00" or ""<br>
+notes: string — conversation details<br>
+suggested_reply: string — reply script<br>
+chat_link: string — messenger URL<br>
+added_at: string — e.g. "6/28/2026, 12:00:00 PM"
+        </div>
+      </div>
+    </div>
+
     <div class="sp-card">
       <div class="sp-title">Copy Lead Summary</div>
       <div class="sp-sub">Plain-text summary of all scheduled and pending leads.</div>
       <button class="btn-save" onclick="copySummary()" style="width:100%;padding:12px;">📋 Copy lead summary</button>
     </div>
+    <div class="sp-card" style="border-color:#1877f2;">
+      <div class="sp-title" style="color:#1877f2;">🧮 Cost & Pricing Calculator</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Enter all your real costs — product, gas, time, delivery. The app calculates your true profit per unit automatically.</div>
+
+      <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin-bottom:10px;text-transform:uppercase;">Product Cost</div>
+      <div class="fgrid" style="margin-bottom:4px;">
+        <div class="fg">
+          <label>UNIT COST ($)</label>
+          <input class="fi" type="number" id="cost-unit" min="0" step="0.01" placeholder="20.00" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">What you pay Alibaba per rack</div>
+        </div>
+        <div class="fg">
+          <label>SELL PRICE ($)</label>
+          <input class="fi" type="number" id="cost-sell" min="0" step="0.01" placeholder="75.00" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">Your listing price per rack</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin:16px 0 10px;text-transform:uppercase;">Gas & Transportation</div>
+      <div class="fgrid" style="margin-bottom:4px;">
+        <div class="fg">
+          <label>ROUND TRIP MILES</label>
+          <input class="fi" type="number" id="cost-miles" min="0" step="1" placeholder="30" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">Miles per delivery run</div>
+        </div>
+        <div class="fg">
+          <label>GAS COST PER MILE ($)</label>
+          <input class="fi" type="number" id="cost-mpg" min="0" step="0.01" placeholder="0.21" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">Avg fuel cost per mile</div>
+        </div>
+      </div>
+      <div class="fgrid" style="margin-bottom:4px;">
+        <div class="fg">
+          <label>UNITS PER RUN</label>
+          <input class="fi" type="number" id="cost-units-run" min="1" step="1" placeholder="2" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">How many racks per trip</div>
+        </div>
+        <div class="fg">
+          <label>GAS COST PER UNIT ($)</label>
+          <input class="fi" type="number" id="cost-gas-unit" placeholder="0.00" disabled style="background:#f9fafb;color:#1877f2;font-weight:600;">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">Auto-calculated</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin:16px 0 10px;text-transform:uppercase;">Time Cost</div>
+      <div class="fgrid" style="margin-bottom:4px;">
+        <div class="fg">
+          <label>HOURS PER SALE</label>
+          <input class="fi" type="number" id="cost-hours" min="0" step="0.25" placeholder="1.5" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">Setup + drive + handoff</div>
+        </div>
+        <div class="fg">
+          <label>YOUR HOURLY RATE ($)</label>
+          <input class="fi" type="number" id="cost-hourly" min="0" step="1" placeholder="25" oninput="previewCostCalc()">
+          <div style="font-size:11px;color:#65676b;margin-top:4px;">What your time is worth</div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin:16px 0 10px;text-transform:uppercase;">Other Costs</div>
+      <div id="extra-costs-list"></div>
+      <button class="btn-cancel" onclick="addExtraCost()" style="width:100%;padding:9px;border-radius:8px;font-size:13px;margin-bottom:12px;">+ Add another cost</button>
+
+      <!-- Live preview -->
+      <div id="cost-preview" style="background:#f0f6ff;border:1.5px solid #93c5fd;border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:#1877f2;letter-spacing:.06em;margin-bottom:10px;">LIVE BREAKDOWN PER UNIT</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #dbeafe;"><span style="color:#65676b;">📦 Unit cost</span><span id="pv-unit" style="font-weight:600;color:#ef4444;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #dbeafe;"><span style="color:#65676b;">⛽ Gas per unit</span><span id="pv-gas" style="font-weight:600;color:#ef4444;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #dbeafe;"><span style="color:#65676b;">⏱ Time cost</span><span id="pv-time" style="font-weight:600;color:#ef4444;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #dbeafe;"><span style="color:#65676b;">➕ Other costs</span><span id="pv-other" style="font-weight:600;color:#ef4444;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0 5px;font-size:14px;border-bottom:1px solid #dbeafe;"><span style="font-weight:700;">Total cost/unit</span><span id="pv-total-cost" style="font-weight:800;color:#ef4444;font-size:15px;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0 5px;font-size:14px;border-bottom:1px solid #dbeafe;"><span style="font-weight:700;">Sell price</span><span id="pv-sell" style="font-weight:800;color:#1877f2;font-size:15px;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0 4px;font-size:15px;"><span style="font-weight:800;">True profit/unit</span><span id="pv-profit" style="font-weight:800;font-size:18px;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#65676b;">Margin %</span><span id="pv-pct" style="font-weight:700;"></span></div>
+        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:#65676b;">ROI on investment</span><span id="pv-roi" style="font-weight:700;color:#1877f2;"></span></div>
+        <div style="background:#e7f9ee;border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:600;color:#0d5c2b;">Pipeline true profit (active leads)</span>
+          <span id="pv-pipeline" style="font-size:16px;font-weight:800;color:#1a7f37;"></span>
+        </div>
+      </div>
+
+      <button class="btn-save" onclick="saveCostSettings()" style="width:100%;padding:13px;font-size:15px;">💾 Save — update all metrics</button>
+      <div id="cost-saved-msg" style="display:none;text-align:center;font-size:13px;color:#1a7f37;margin-top:8px;font-weight:600;">✓ Saved — all profit calculations updated</div>
+    </div>
+
     <div class="sp-card">
       <div class="sp-title">Anthropic API Key</div>
       <div class="sp-sub">Required for scanning screenshots. Stored only on your device.</div>
@@ -389,6 +530,58 @@ select.fi{cursor:pointer;}
       <div class="sp-sub">Permanently deletes ALL leads and events from the cloud database.</div>
       <button class="btn-cancel" onclick="clearAll()" style="border-color:#fca5a5;color:#ef4444;width:100%;padding:12px;border-radius:8px;">🗑 Clear all cloud data</button>
     </div>
+  </div>
+</div>
+
+<!-- METRICS PAGE -->
+<div id="page-metrics" class="page">
+  <div class="subpage">
+
+    <!-- Top KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;" id="m-kpi-grid"></div>
+
+    <!-- Revenue breakdown -->
+    <div class="sp-card">
+      <div class="sp-title">💰 Revenue breakdown</div>
+      <div class="sp-sub" style="margin-bottom:14px;">How your potential revenue is calculated</div>
+      <div id="m-rev-breakdown"></div>
+    </div>
+
+    <!-- Profit breakdown -->
+    <div class="sp-card">
+      <div class="sp-title">🏆 Profit breakdown</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Revenue minus cost per unit ($20 each)</div>
+      <div id="m-profit-breakdown"></div>
+    </div>
+
+    <!-- Pipeline funnel -->
+    <div class="sp-card">
+      <div class="sp-title">🔽 Pipeline funnel</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Where your leads are in the sales process</div>
+      <div id="m-funnel"></div>
+    </div>
+
+    <!-- Lead conversion -->
+    <div class="sp-card">
+      <div class="sp-title">📈 Conversion rates</div>
+      <div class="sp-sub" style="margin-bottom:14px;">How well your leads are converting</div>
+      <div id="m-conversion"></div>
+    </div>
+
+    <!-- Top leads -->
+    <div class="sp-card">
+      <div class="sp-title">⭐ Top leads by value</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Your highest value active opportunities</div>
+      <div id="m-top-leads"></div>
+    </div>
+
+    <!-- Unit economics -->
+    <div class="sp-card">
+      <div class="sp-title">🧮 Unit economics</div>
+      <div class="sp-sub" style="margin-bottom:14px;">Per-unit breakdown at current pricing</div>
+      <div id="m-unit-econ"></div>
+    </div>
+
   </div>
 </div>
 
@@ -458,7 +651,7 @@ select.fi{cursor:pointer;}
     <div class="bnitem active" onclick="switchPage('dashboard')"><div class="bn-ico">📋</div>Dashboard</div>
     <div class="bnitem" onclick="switchPage('scan')"><div class="bn-ico">📸</div>Scan</div>
     <div class="bnitem" onclick="switchPage('calendar')"><div class="bn-ico">📅</div>Calendar</div>
-    <div class="bnitem" onclick="switchPage('templates')"><div class="bn-ico">💬</div>Templates</div>
+    <div class="bnitem" onclick="switchPage('metrics')"><div class="bn-ico">📊</div>Metrics</div>
     <div class="bnitem" onclick="switchPage('save')"><div class="bn-ico">💾</div>Save</div>
   </div>
 </div>
@@ -469,7 +662,13 @@ select.fi{cursor:pointer;}
 const SUPA_URL = 'https://xpwyjtppowhonuzugaig.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhwd3lqdHBwb3dob251enVnYWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxNDU2NjcsImV4cCI6MjA5NDcyMTY2N30.6RLVZcaxN73Brj-Jz-b2YTQWyrkO_5hKcmjCyhPfVTo';
 const HEADERS = { 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':`Bearer ${SUPA_KEY}`,'Prefer':'return=representation' };
-const COST=20,SELL=75,MARGIN=SELL-COST;
+const SELL=75;
+let COST = parseFloat(localStorage.getItem('rs_cost_per_unit') || '20');
+let MARGIN = SELL - COST;
+function updateCostGlobals() {
+  COST = parseFloat(localStorage.getItem('rs_cost_per_unit') || '20');
+  MARGIN = SELL - COST;
+}
 
 // ── State ──
 let leads=[], events=[], templates=defaultTmpls(), uploads=[];
@@ -1220,12 +1419,419 @@ async function clearAll(){
   renderTable();renderStats();renderEvents();toast('All cloud data cleared');
 }
 
+// ── Metrics ──
+function renderMetrics() {
+  updateCostGlobals();
+  const COST_NOW = COST_NOW;
+  const parseP = (price) => {
+    if (!price) return 75;
+    const m = String(price).match(/\d+(\.\d+)?/);
+    const n = m ? parseFloat(m[0]) : NaN;
+    return (!isNaN(n) && n > 0 && n < 10000) ? n : 75;
+  };
+
+  const active = leads.filter(l => l.status === 'pending' || l.status === 'scheduled');
+  const scheduled = leads.filter(l => l.status === 'scheduled');
+  const pending = leads.filter(l => l.status === 'pending');
+  const sold = leads.filter(l => l.status === 'sold');
+  const cancelled = leads.filter(l => l.status === 'cancelled');
+  const total = leads.length;
+
+  // Revenue calc
+  const calcRev = (arr) => arr.reduce((s, l) => {
+    const p = parseP(l.price);
+    const u = l.units || 1;
+    return s + (p > 200 && u > 1 ? p : p * u);
+  }, 0);
+  const calcProfit = (arr) => arr.reduce((s, l) => {
+    const p = parseP(l.price);
+    const u = l.units || 1;
+    const rev = p > 200 && u > 1 ? p : p * u;
+    const cost = u * COST_NOW;
+    return s + (rev - cost);
+  }, 0);
+
+  const totalRev = calcRev(active);
+  const scheduledRev = calcRev(scheduled);
+  const pendingRev = calcRev(pending);
+  const soldRev = calcRev(sold);
+  const totalProfit = calcProfit(active);
+  const soldProfit = calcProfit(sold);
+  const totalUnits = active.reduce((s, l) => s + (l.units || 1), 0);
+  const convRate = total > 0 ? ((sold.length / total) * 100).toFixed(1) : '0.0';
+  const schedRate = total > 0 ? ((scheduled.length / total) * 100).toFixed(1) : '0.0';
+
+  const fmt = (n) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  // KPI grid
+  document.getElementById('m-kpi-grid').innerHTML = `
+    <div class="m-kpi"><div class="m-kpi-val" style="color:#1877f2">${fmt(totalRev)}</div><div class="m-kpi-label">Pipeline Revenue</div></div>
+    <div class="m-kpi"><div class="m-kpi-val" style="color:#1a7f37">${fmt(totalProfit)}</div><div class="m-kpi-label">Pipeline Profit</div></div>
+    <div class="m-kpi"><div class="m-kpi-val" style="color:#92400e">${totalUnits}</div><div class="m-kpi-label">Units in Pipeline</div></div>
+    <div class="m-kpi"><div class="m-kpi-val" style="color:#1540a0">${convRate}%</div><div class="m-kpi-label">Close Rate</div></div>
+  `;
+
+  // Revenue breakdown
+  const costTotal = totalUnits * COST_NOW;
+  document.getElementById('m-rev-breakdown').innerHTML = `
+    <div class="m-row"><span class="m-label">📅 Scheduled leads</span><span class="m-val blue">${fmt(scheduledRev)}</span></div>
+    <div class="m-row"><span class="m-label">⏳ Pending leads</span><span class="m-val amber">${fmt(pendingRev)}</span></div>
+    <div class="m-row"><span class="m-label">✅ Already sold</span><span class="m-val green">${fmt(soldRev)}</span></div>
+    <div class="m-row" style="background:#f9fafb;margin:0 -20px;padding:10px 20px;border-radius:8px;margin-top:8px;">
+      <span class="m-label" style="font-weight:700;">Total active pipeline</span>
+      <span class="m-val blue" style="font-size:16px;">${fmt(totalRev)}</span>
+    </div>
+  `;
+
+  // Profit breakdown
+  document.getElementById('m-profit-breakdown').innerHTML = `
+    <div class="m-row"><span class="m-label">Pipeline revenue</span><span class="m-val blue">${fmt(totalRev)}</span></div>
+    <div class="m-row"><span class="m-label">Cost (${totalUnits} units × $${COST_NOW})</span><span class="m-val red">− ${fmt(costTotal)}</span></div>
+    <div class="m-row" style="background:#f9fafb;margin:0 -20px;padding:10px 20px;border-radius:8px;margin-top:8px;">
+      <span class="m-label" style="font-weight:700;">Pipeline profit</span>
+      <span class="m-val green" style="font-size:16px;">${fmt(totalProfit)}</span>
+    </div>
+    <div class="m-row" style="margin-top:8px;"><span class="m-label">Margin per unit (avg)</span><span class="m-val green">${fmt(totalUnits > 0 ? totalProfit/totalUnits : 0)}</span></div>
+    <div class="m-row"><span class="m-label">Profit if all close</span><span class="m-val green">${fmt(totalProfit)}</span></div>
+    <div class="m-row"><span class="m-label">Confirmed sold profit</span><span class="m-val green">${fmt(soldProfit)}</span></div>
+  `;
+
+  // Funnel
+  const funnelData = [
+    { label: 'Total leads', count: total, color: '#1877f2' },
+    { label: 'Active (pending + scheduled)', count: active.length, color: '#3b82f6' },
+    { label: 'Scheduled', count: scheduled.length, color: '#f59e0b' },
+    { label: 'Sold', count: sold.length, color: '#16a34a' },
+  ];
+  const maxCount = total || 1;
+  document.getElementById('m-funnel').innerHTML = funnelData.map(f => `
+    <div class="funnel-bar-wrap">
+      <div class="funnel-bar-label"><span>${f.label}</span><span style="font-weight:700;">${f.count} (${total > 0 ? ((f.count/total)*100).toFixed(0) : 0}%)</span></div>
+      <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:${(f.count/maxCount)*100}%;background:${f.color};"></div></div>
+    </div>
+  `).join('');
+
+  // Conversion
+  document.getElementById('m-conversion').innerHTML = `
+    <div class="m-row"><span class="m-label">Total leads</span><span class="m-val">${total}</span></div>
+    <div class="m-row"><span class="m-label">Active pipeline</span><span class="m-val blue">${active.length} (${total > 0 ? ((active.length/total)*100).toFixed(0) : 0}%)</span></div>
+    <div class="m-row"><span class="m-label">Scheduled rate</span><span class="m-val amber">${schedRate}%</span></div>
+    <div class="m-row"><span class="m-label">Close rate (sold)</span><span class="m-val green">${convRate}%</span></div>
+    <div class="m-row"><span class="m-label">Cancelled / lost</span><span class="m-val red">${cancelled.length} (${total > 0 ? ((cancelled.length/total)*100).toFixed(0) : 0}%)</span></div>
+    <div class="m-row"><span class="m-label">Avg units per deal</span><span class="m-val">${active.length > 0 ? (totalUnits/active.length).toFixed(1) : '0'}</span></div>
+  `;
+
+  // Top leads by value
+  const topLeads = [...active]
+    .map(l => {
+      const p = parseP(l.price);
+      const u = l.units || 1;
+      const rev = p > 200 && u > 1 ? p : p * u;
+      const profit = rev - (u * COST_NOW);
+      return { ...l, _rev: rev, _profit: profit };
+    })
+    .sort((a, b) => b._rev - a._rev)
+    .slice(0, 8);
+
+  document.getElementById('m-top-leads').innerHTML = topLeads.length ? topLeads.map((l, i) => `
+    <div class="top-lead-row">
+      <div class="top-lead-rank">${i+1}</div>
+      <div>
+        <div class="top-lead-name">${l.name}</div>
+        <div style="font-size:12px;color:#65676b;">${l.units||1} unit${(l.units||1)>1?'s':''} · ${l.status} · profit ${fmt(l._profit)}</div>
+      </div>
+      <div class="top-lead-val">${fmt(l._rev)}</div>
+    </div>
+  `).join('') : '<div style="text-align:center;color:#bcc0c4;padding:20px;">No active leads yet</div>';
+
+  // Unit economics
+  const avgPrice = active.length > 0 ? (totalRev / totalUnits) : 75;
+  document.getElementById('m-unit-econ').innerHTML = `
+    <div class="m-row"><span class="m-label">Cost per unit</span><span class="m-val red">$${COST_NOW}.00</span></div>
+    <div class="m-row"><span class="m-label">Sell price (standard)</span><span class="m-val">$75.00</span></div>
+    <div class="m-row"><span class="m-label">Avg sell price (current pipeline)</span><span class="m-val blue">${fmt(avgPrice)}</span></div>
+    <div class="m-row"><span class="m-label">Standard margin</span><span class="m-val green">$${75-COST_NOW}.00 (${(((75-COST_NOW)/75)*100).toFixed(0)}%)</span></div>
+    <div class="m-row"><span class="m-label">Avg pipeline margin</span><span class="m-val green">${fmt(avgPrice - COST_NOW)} (${avgPrice > 0 ? (((avgPrice-COST_NOW)/avgPrice)*100).toFixed(0) : 0}%)</span></div>
+    <div class="m-row"><span class="m-label">Break-even price</span><span class="m-val">$${COST_NOW}.00/unit</span></div>
+    <div class="m-row"><span class="m-label">ROI per unit</span><span class="m-val green">${((75-COST_NOW)/COST_NOW*100).toFixed(0)}% at $75</span></div>
+  `;
+}
+
+// ── Cost settings ──
+let extraCosts = JSON.parse(localStorage.getItem('rs_extra_costs') || '[]');
+
+function initCostInputs() {
+  const s = JSON.parse(localStorage.getItem('rs_cost_settings') || '{}');
+  document.getElementById('cost-unit').value = s.unit || 20;
+  document.getElementById('cost-sell').value = s.sell || 75;
+  document.getElementById('cost-miles').value = s.miles || 30;
+  document.getElementById('cost-mpg').value = s.mpg || 0.21;
+  document.getElementById('cost-units-run').value = s.unitsRun || 2;
+  document.getElementById('cost-hours').value = s.hours || 1.5;
+  document.getElementById('cost-hourly').value = s.hourly || 25;
+  extraCosts = JSON.parse(localStorage.getItem('rs_extra_costs') || '[]');
+  renderExtraCosts();
+  previewCostCalc();
+}
+
+function getTrueCostPerUnit() {
+  const s = JSON.parse(localStorage.getItem('rs_cost_settings') || '{}');
+  const unit = parseFloat(s.unit || 20);
+  const miles = parseFloat(s.miles || 30);
+  const mpg = parseFloat(s.mpg || 0.21);
+  const unitsRun = parseFloat(s.unitsRun || 2);
+  const hours = parseFloat(s.hours || 1.5);
+  const hourly = parseFloat(s.hourly || 25);
+  const extras = JSON.parse(localStorage.getItem('rs_extra_costs') || '[]');
+  const gasCost = (miles * mpg) / unitsRun;
+  const timeCost = (hours * hourly) / unitsRun;
+  const extraTotal = extras.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  return unit + gasCost + timeCost + extraTotal;
+}
+
+function previewCostCalc() {
+  const unit = parseFloat(document.getElementById('cost-unit').value) || 20;
+  const sell = parseFloat(document.getElementById('cost-sell').value) || 75;
+  const miles = parseFloat(document.getElementById('cost-miles').value) || 30;
+  const mpg = parseFloat(document.getElementById('cost-mpg').value) || 0.21;
+  const unitsRun = parseFloat(document.getElementById('cost-units-run').value) || 2;
+  const hours = parseFloat(document.getElementById('cost-hours').value) || 1.5;
+  const hourly = parseFloat(document.getElementById('cost-hourly').value) || 25;
+  const gasCost = (miles * mpg) / unitsRun;
+  const timeCost = (hours * hourly) / unitsRun;
+  const extraTotal = extraCosts.reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+  const totalCost = unit + gasCost + timeCost + extraTotal;
+  const profit = sell - totalCost;
+  const pct = sell > 0 ? ((profit / sell) * 100).toFixed(1) : 0;
+  const roi = unit > 0 ? ((profit / unit) * 100).toFixed(0) : 0;
+  const fmt = n => '$' + Math.abs(n).toFixed(2);
+
+  // Update gas per unit display
+  document.getElementById('cost-gas-unit').value = '$' + gasCost.toFixed(2);
+
+  // Update preview
+  document.getElementById('pv-unit').textContent = '− ' + fmt(unit);
+  document.getElementById('pv-gas').textContent = '− ' + fmt(gasCost);
+  document.getElementById('pv-time').textContent = '− ' + fmt(timeCost);
+  document.getElementById('pv-other').textContent = '− ' + fmt(extraTotal);
+  document.getElementById('pv-total-cost').textContent = '− ' + fmt(totalCost);
+  document.getElementById('pv-sell').textContent = '+' + fmt(sell);
+  document.getElementById('pv-profit').textContent = (profit >= 0 ? '+' : '−') + fmt(profit);
+  document.getElementById('pv-profit').style.color = profit >= 0 ? '#1a7f37' : '#ef4444';
+  document.getElementById('pv-pct').textContent = pct + '%';
+  document.getElementById('pv-pct').style.color = profit >= 0 ? '#1a7f37' : '#ef4444';
+  document.getElementById('pv-roi').textContent = roi + '%';
+
+  // Pipeline profit
+  const active = leads.filter(l => l.status === 'pending' || l.status === 'scheduled');
+  const parseP = (price) => {
+    if (!price) return sell;
+    const m = String(price).match(/\d+(\.\d+)?/);
+    const n = m ? parseFloat(m[0]) : NaN;
+    return (!isNaN(n) && n > 0 && n < 10000) ? n : sell;
+  };
+  const pipelineProfit = active.reduce((s, l) => {
+    const p = parseP(l.price);
+    const u = l.units || 1;
+    const rev = p > 200 && u > 1 ? p : p * u;
+    return s + (rev - (u * totalCost));
+  }, 0);
+  document.getElementById('pv-pipeline').textContent = (pipelineProfit >= 0 ? '+' : '') + '$' + pipelineProfit.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('pv-pipeline').style.color = pipelineProfit >= 0 ? '#1a7f37' : '#ef4444';
+}
+
+function addExtraCost() {
+  extraCosts.push({ id: Date.now(), label: '', amount: '' });
+  renderExtraCosts();
+}
+
+function removeExtraCost(id) {
+  extraCosts = extraCosts.filter(e => e.id !== id);
+  renderExtraCosts();
+  previewCostCalc();
+}
+
+function renderExtraCosts() {
+  const list = document.getElementById('extra-costs-list');
+  list.innerHTML = '';
+  extraCosts.forEach(ec => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px;';
+    row.innerHTML = `
+      <input class="fi" type="text" placeholder="e.g. Packaging" value="${ec.label}" oninput="updateExtraCost(${ec.id},'label',this.value)" style="flex:2;">
+      <input class="fi" type="number" placeholder="$0.00" value="${ec.amount}" oninput="updateExtraCost(${ec.id},'amount',this.value);previewCostCalc();" style="flex:1;">
+      <button onclick="removeExtraCost(${ec.id})" style="background:#fde8e8;border:1px solid #fca5a5;border-radius:6px;padding:8px 10px;cursor:pointer;color:#ef4444;font-size:14px;flex-shrink:0;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+function updateExtraCost(id, field, value) {
+  const ec = extraCosts.find(e => e.id === id);
+  if (ec) ec[field] = value;
+}
+
+function saveCostSettings() {
+  const settings = {
+    unit: parseFloat(document.getElementById('cost-unit').value) || 20,
+    sell: parseFloat(document.getElementById('cost-sell').value) || 75,
+    miles: parseFloat(document.getElementById('cost-miles').value) || 30,
+    mpg: parseFloat(document.getElementById('cost-mpg').value) || 0.21,
+    unitsRun: parseFloat(document.getElementById('cost-units-run').value) || 2,
+    hours: parseFloat(document.getElementById('cost-hours').value) || 1.5,
+    hourly: parseFloat(document.getElementById('cost-hourly').value) || 25
+  };
+  localStorage.setItem('rs_cost_settings', JSON.stringify(settings));
+  localStorage.setItem('rs_extra_costs', JSON.stringify(extraCosts));
+  // Update global COST to true cost per unit
+  const trueCost = getTrueCostPerUnit();
+  localStorage.setItem('rs_cost_per_unit', trueCost.toString());
+  localStorage.setItem('rs_sell_price', settings.sell.toString());
+  updateCostGlobals();
+  renderStats();
+  renderTable();
+  if (document.getElementById('page-metrics').classList.contains('active')) renderMetrics();
+  const msg = document.getElementById('cost-saved-msg');
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  toast('✓ True cost/unit: $' + trueCost.toFixed(2));
+}
+
+// ── Programmatic import (automation-friendly) ──
+
+// Schema validation
+function validateLead(lead) {
+  const errors = [];
+  if (lead.id === undefined || lead.id === null) errors.push('missing id');
+  if (!lead.name || typeof lead.name !== 'string') errors.push('missing/invalid name');
+  const validStatuses = ['pending','scheduled','sold','cancelled'];
+  if (lead.status && !validStatuses.includes(lead.status)) errors.push('invalid status: ' + lead.status);
+  return errors;
+}
+
+// Core upsert function — idempotent on id
+async function upsertLead(lead) {
+  const clean = cleanLead(lead, 0);
+  // Use Supabase upsert (INSERT ... ON CONFLICT DO UPDATE)
+  const res = await fetch(SUPA_URL + '/rest/v1/leads', {
+    method: 'POST',
+    headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
+    body: JSON.stringify(clean)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  return await res.json();
+}
+
+// Global function — callable by automation: window.importLeadsFromJSON(jsonString)
+window.importLeadsFromJSON = async function(jsonString) {
+  const result = { inserted: 0, updated: 0, errors: [] };
+  let arr;
+
+  // Parse
+  try {
+    const parsed = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+    arr = Array.isArray(parsed) ? parsed : (parsed.leads || []);
+  } catch(e) {
+    result.errors.push('JSON parse error: ' + e.message);
+    console.error('RackScout import: JSON parse failed', e.message);
+    return result;
+  }
+
+  if (!arr.length) {
+    result.errors.push('Empty array — nothing to import');
+    console.warn('RackScout import: empty array');
+    return result;
+  }
+
+  // Validate and upsert each lead
+  const existingIds = new Set(leads.map(l => String(l.id)));
+
+  for (let i = 0; i < arr.length; i++) {
+    const lead = arr[i];
+    const validationErrors = validateLead(lead);
+    if (validationErrors.length) {
+      result.errors.push('Row ' + i + ' (' + (lead.name||'?') + '): ' + validationErrors.join(', '));
+      continue;
+    }
+    try {
+      const saved = await upsertLead(lead);
+      const wasExisting = existingIds.has(String(lead.id));
+      if (wasExisting) {
+        result.updated++;
+        // Update in local state
+        const idx = leads.findIndex(l => String(l.id) === String(lead.id));
+        if (idx >= 0) leads[idx] = (saved && saved[0]) || cleanLead(lead, i);
+      } else {
+        result.inserted++;
+        leads.unshift((saved && saved[0]) || cleanLead(lead, i));
+        existingIds.add(String(lead.id));
+      }
+    } catch(e) {
+      result.errors.push('Row ' + i + ' (' + (lead.name||'?') + '): ' + e.message);
+    }
+  }
+
+  // Refresh UI
+  renderTable();
+  renderStats();
+
+  // Console report for automation caller
+  console.log(
+    'RackScout import: ' + result.inserted + ' inserted, ' +
+    result.updated + ' updated, ' +
+    result.errors.length + ' errors' +
+    (result.errors.length ? ' — ' + result.errors.join(' | ') : '')
+  );
+
+  return result;
+};
+
+// Paste JSON button handler
+async function importFromPaste() {
+  const raw = document.getElementById('paste-json-input').value.trim();
+  const resultEl = document.getElementById('paste-result');
+  if (!raw) { toast('Paste JSON first'); return; }
+
+  resultEl.style.display = 'block';
+  resultEl.style.background = '#fff8e1';
+  resultEl.style.borderLeft = '3px solid #f59e0b';
+  resultEl.textContent = 'Importing…';
+  setSyncState('syncing', 'Importing…');
+
+  const result = await window.importLeadsFromJSON(raw);
+
+  setSyncState('live', 'Live ●');
+
+  if (result.errors.length === 0) {
+    resultEl.style.background = '#e7f9ee';
+    resultEl.style.borderLeft = '3px solid #16a34a';
+    resultEl.innerHTML =
+      '✓ ' + result.inserted + ' new leads inserted<br>' +
+      '✓ ' + result.updated + ' existing leads updated<br>' +
+      '✓ 0 errors — import successful';
+    toast('✓ ' + (result.inserted + result.updated) + ' leads synced');
+  } else {
+    resultEl.style.background = result.inserted + result.updated > 0 ? '#fff8e1' : '#fde8e8';
+    resultEl.style.borderLeft = '3px solid ' + (result.inserted + result.updated > 0 ? '#f59e0b' : '#ef4444');
+    resultEl.innerHTML =
+      '✓ ' + result.inserted + ' inserted, ' + result.updated + ' updated<br>' +
+      '✗ ' + result.errors.length + ' errors:<br>' +
+      result.errors.map(e => '&nbsp;&nbsp;• ' + e).join('<br>');
+    toast(result.inserted + result.updated + ' synced, ' + result.errors.length + ' errors');
+  }
+
+  switchPage('dashboard');
+}
+
 // ── Nav ──
-const pages=['dashboard','scan','calendar','templates','save'];
+const pages=['dashboard','scan','calendar','templates','metrics','save'];
 function switchPage(name){
   pages.forEach(p=>{document.getElementById(`page-${p}`).classList.toggle('active',p===name);});
   document.querySelectorAll('.ptab').forEach((t,i)=>t.classList.toggle('active',pages[i]===name));
   document.querySelectorAll('.bnitem').forEach((t,i)=>t.classList.toggle('active',pages[i]===name));
+  if(name==='metrics') renderMetrics();
 }
 
 // ── Utilities ──
@@ -1250,6 +1856,7 @@ async function loadAll(){
 
 // ── Init ──
 updateGCalUI();
+initCostInputs();
 const k=localStorage.getItem('rs_apikey');
 if(k)document.getElementById('api-key-input').value=k;
 document.getElementById('tn-date').textContent=new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'});
