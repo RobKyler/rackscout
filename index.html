@@ -693,7 +693,7 @@ function renderTable(){
       <td><div class="meetup-main">${lead.meetup||'TBD — buyer picking up'}</div><div class="meetup-time">${dtStr}</div></td>
       <td>${badge}</td>
       <td><div class="notes-cell">${lead.notes||'—'}</div></td>
-      <td><div class="act-btns"><button class="act-btn" onclick="editLead(${lead.id})">Edit</button><button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button></div></td>`;
+      <td><div class="act-btns"><button class="act-btn" onclick="editLead(${lead.id})">Edit</button>${lead.chat_link ? `<a class="act-btn" href="${lead.chat_link}" target="_blank" style="text-decoration:none;">💬 Chat</a>` : ""}<button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button></div></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -917,19 +917,22 @@ function exportCSV(){
 }
 // Clean a lead row before sending to Supabase
 function cleanLead(lead, index) {
+  // Remap large IDs to safe sequential numbers
+  const safeId = index !== undefined ? (1748000000000 + index + 1) : (Date.now() + Math.floor(Math.random()*9999));
   return {
-    id: (lead.id && lead.id < 9007199254740991) ? lead.id : (Date.now() + (index || Math.floor(Math.random()*9999))),
+    id: safeId,
     name: lead.name || 'Unknown',
     source: lead.source || 'Facebook Marketplace',
     item: lead.item || 'Storage Racks',
     price: lead.price || '',
-    units: (lead.units === null || lead.units === undefined) ? 1 : lead.units,
+    units: (lead.units === null || lead.units === undefined) ? 1 : Number(lead.units),
     status: ['pending','scheduled','sold','cancelled'].includes(lead.status) ? lead.status : 'pending',
     meetup: lead.meetup || 'TBD',
     datetime: (lead.datetime && lead.datetime !== '') ? lead.datetime : null,
     notes: lead.notes || '',
     suggested_reply: lead.suggested_reply || '',
-    added_at: lead.added_at || new Date().toLocaleString()
+    added_at: lead.added_at || new Date().toLocaleString(),
+    chat_link: lead.chat_link || null
   };
 }
 
