@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>RackScout — Meetup Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{min-height:100%;background:#f0f2f5;color:#1c1e21;font-family:'Inter',sans-serif;font-size:14px;}
@@ -174,6 +175,12 @@ select.fi{cursor:pointer;}
 .live-banner.show{display:flex;}
 .lb-dot{width:8px;height:8px;border-radius:50%;background:#1877f2;animation:sdpulse 1s infinite;flex-shrink:0;}
 .page{display:none;}.page.active{display:block;}
+.gcal-btn{background:#4285f4;color:#fff;border:none;border-radius:6px;padding:5px 12px;font-family:"Inter",sans-serif;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.gcal-btn:hover{background:#3367d6;}
+.gcal-btn.connected{background:#e7f9ee;color:#0d5c2b;border:1.5px solid #86efac;}
+.gcal-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:12px;}
+.gcal-status.connected{background:#e7f9ee;border:1px solid #86efac;color:#0d5c2b;}
+.gcal-status.disconnected{background:#fff8e1;border:1px solid #fcd34d;color:#92400e;}
 @media(max-width:640px){
   .stats-bar,.table-area,.filter-panel,.subpage,.live-banner{margin-left:12px;margin-right:12px;}
   .stats-bar{padding-left:12px;padding-right:12px;}
@@ -331,6 +338,21 @@ select.fi{cursor:pointer;}
     <div class="sp-card" style="border-color:#93c5fd;background:#eff6ff;">
       <div class="sp-title" style="color:#1877f2;">☁️ Cloud Sync + Live Updates Active</div>
       <div class="sp-sub" style="margin-bottom:0;">All data saves to Supabase instantly. Real-time updates push to every open device automatically — no refresh needed. Open this app on any phone or browser and your leads are always there.</div>
+    </div>
+    <div class="sp-card" style="border-color:#4285f4;">
+      <div class="sp-title" style="color:#4285f4;">📅 Google Calendar Sync</div>
+      <div class="sp-sub">Connect your Google account to add meetups directly to your calendar with one tap — no confirm screen needed.</div>
+      <div class="gcal-status disconnected" id="gcal-status-bar">
+        <span>⚠️</span><span id="gcal-status-text">Not connected to Google Calendar</span>
+      </div>
+      <button class="gcal-btn" id="gcal-connect-btn" onclick="connectGoogleCalendar()">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign in with Google
+      </button>
+      <div id="gcal-connected-ui" style="display:none;margin-top:10px;">
+        <div style="font-size:13px;color:#65676b;margin-bottom:8px;">Signed in as <strong id="gcal-user-email"></strong></div>
+        <button class="btn-cancel" onclick="disconnectGoogleCalendar()" style="font-size:12px;padding:6px 14px;">Disconnect</button>
+      </div>
     </div>
     <div class="sp-card">
       <div class="sp-title">Export Data</div>
@@ -624,22 +646,176 @@ function defaultTmpls(){return[
 ];}
 
 // ── Stats ──
+
+// ── Google Calendar OAuth ──
+const GCAL_CLIENT_ID = '900607691416-uo4e9vtpfdr59o6obg1uurdlivkrsrg5.apps.googleusercontent.com';
+const GCAL_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+let gcalAccessToken = localStorage.getItem('gcal_token') || null;
+let gcalTokenExpiry = parseInt(localStorage.getItem('gcal_token_expiry') || '0');
+let googleClient = null;
+
+function isGCalConnected() {
+  return gcalAccessToken && Date.now() < gcalTokenExpiry;
+}
+
+function updateGCalUI() {
+  const statusBar = document.getElementById('gcal-status-bar');
+  const statusText = document.getElementById('gcal-status-text');
+  const connectBtn = document.getElementById('gcal-connect-btn');
+  const connectedUI = document.getElementById('gcal-connected-ui');
+  const email = localStorage.getItem('gcal_email') || '';
+  if (isGCalConnected()) {
+    statusBar.className = 'gcal-status connected';
+    statusText.textContent = 'Connected — tap 📅 on any lead to add to calendar';
+    connectBtn.style.display = 'none';
+    connectedUI.style.display = 'block';
+    document.getElementById('gcal-user-email').textContent = email;
+  } else {
+    statusBar.className = 'gcal-status disconnected';
+    statusText.textContent = 'Not connected to Google Calendar';
+    connectBtn.style.display = 'inline-flex';
+    connectedUI.style.display = 'none';
+  }
+}
+
+function connectGoogleCalendar() {
+  if (!window.google) { toast('Google API loading — try again in a moment'); return; }
+  googleClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope: GCAL_SCOPE,
+    callback: (response) => {
+      if (response.error) { toast('Google sign-in failed: ' + response.error); return; }
+      gcalAccessToken = response.access_token;
+      gcalTokenExpiry = Date.now() + (response.expires_in * 1000);
+      localStorage.setItem('gcal_token', gcalAccessToken);
+      localStorage.setItem('gcal_token_expiry', gcalTokenExpiry.toString());
+      // Get user email
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: 'Bearer ' + gcalAccessToken }
+      }).then(r => r.json()).then(info => {
+        localStorage.setItem('gcal_email', info.email || '');
+        updateGCalUI();
+        toast('✓ Google Calendar connected!');
+      });
+    }
+  });
+  googleClient.requestAccessToken();
+}
+
+function disconnectGoogleCalendar() {
+  gcalAccessToken = null;
+  gcalTokenExpiry = 0;
+  localStorage.removeItem('gcal_token');
+  localStorage.removeItem('gcal_token_expiry');
+  localStorage.removeItem('gcal_email');
+  updateGCalUI();
+  toast('Google Calendar disconnected');
+}
+
+// ── Add lead to Google Calendar ──
+async function addToCalendar(id) {
+  const lead = leads.find(l => l.id === id);
+  if (!lead) return;
+
+  // Build start/end time
+  let startDt, endDt;
+  if (lead.datetime && lead.datetime !== '') {
+    startDt = new Date(lead.datetime);
+  } else {
+    startDt = new Date();
+    startDt.setDate(startDt.getDate() + 1);
+    startDt.setHours(10, 0, 0, 0);
+  }
+  endDt = new Date(startDt.getTime() + 60 * 60 * 1000);
+
+  const description =
+    'Buyer: ' + lead.name + '\n' +
+    'Item: ' + (lead.item || 'Storage Racks') + '\n' +
+    'Price: ' + (lead.price || '$75') + ' × ' + (lead.units || 1) + ' unit(s)\n' +
+    'Status: ' + lead.status + '\n' +
+    'Meetup: ' + (lead.meetup || 'TBD') + '\n' +
+    'Notes: ' + (lead.notes || '—') + '\n' +
+    (lead.chat_link ? 'Chat: ' + lead.chat_link : '');
+
+  // If connected to Google Calendar API — create event directly
+  if (isGCalConnected()) {
+    try {
+      toast('📅 Adding to Google Calendar…');
+      const event = {
+        summary: 'Rack pickup — ' + lead.name,
+        location: 'Woodland Hills, CA',
+        description: description,
+        start: { dateTime: startDt.toISOString(), timeZone: 'America/Los_Angeles' },
+        end: { dateTime: endDt.toISOString(), timeZone: 'America/Los_Angeles' },
+        reminders: { useDefault: false, overrides: [
+          { method: 'popup', minutes: 60 },
+          { method: 'popup', minutes: 10 }
+        ]}
+      };
+      const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + gcalAccessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(event)
+      });
+      if (res.ok) {
+        const created = await res.json();
+        toast('✓ Added to Google Calendar: ' + lead.name);
+        // Store the event link on the lead
+        const idx = leads.findIndex(l => l.id === id);
+        if (idx >= 0) leads[idx].cal_event_id = created.id;
+      } else {
+        const err = await res.json();
+        if (err.error?.code === 401) {
+          // Token expired — reconnect
+          gcalAccessToken = null;
+          localStorage.removeItem('gcal_token');
+          updateGCalUI();
+          toast('Session expired — reconnect Google Calendar in Save tab');
+        } else {
+          toast('Calendar error: ' + (err.error?.message || 'Unknown error'));
+        }
+      }
+    } catch(e) {
+      toast('Calendar error — check connection');
+      console.error(e);
+    }
+  } else {
+    // Fallback — open Google Calendar in browser
+    const fmt = dt => dt.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const url = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent('Rack pickup — ' + lead.name) +
+      '&dates=' + fmt(startDt) + '/' + fmt(endDt) +
+      '&location=' + encodeURIComponent('Woodland Hills, CA') +
+      '&details=' + encodeURIComponent(description);
+    window.open(url, '_blank');
+    toast('Connect Google Calendar in Save tab for 1-tap sync');
+  }
+}
+
 function renderStats(){
   const all=leads.length;
   const pend=leads.filter(l=>l.status==='pending').length;
   const sched=leads.filter(l=>l.status==='scheduled').length;
   const sold=leads.filter(l=>l.status==='sold').length;
   const canc=leads.filter(l=>l.status==='cancelled').length;
-  const rev=leads.filter(l=>l.status!=='cancelled').reduce((s,l)=>{
-    const p=parseFloat((l.price||'').replace(/[^0-9.]/g,''))||SELL;
-    return s+(l.units||1)*p;
+  // Parse price safely — extract first number only to handle ranges like "$600-900"
+  const parsePrice = (price) => {
+    if (!price) return SELL;
+    const match = String(price).match(/\d+(\.\d+)?/);
+    const num = match ? parseFloat(match[0]) : NaN;
+    return (!isNaN(num) && num > 0 && num < 100000) ? num : SELL;
+  };
+  const rev=leads.filter(l=>l.status==='pending'||l.status==='scheduled').reduce((s,l)=>{
+    return s+(l.units||1)*parsePrice(l.price);
   },0);
   const profit=leads.filter(l=>l.status==='sold').reduce((s,l)=>{
-    const p=parseFloat((l.price||'').replace(/[^0-9.]/g,''))||SELL;
-    return s+(l.units||1)*(p-COST);
+    return s+(l.units||1)*(parsePrice(l.price)-COST);
   },0);
-  $('s-total',all);$('s-revenue','$'+rev.toFixed(2));$('s-pending',pend);
-  $('s-scheduled',sched);$('s-profit','$'+profit.toFixed(2));
+  $('s-total',all);$('s-revenue','$'+rev.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));$('s-pending',pend);
+  $('s-scheduled',sched);$('s-profit','$'+profit.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
   $('fc-all',all);$('fc-pending',pend);$('fc-scheduled',sched);
   $('fc-sold',sold);$('fc-cancelled',canc);
   renderItemChips();
@@ -678,7 +854,7 @@ function renderTable(){
   tbody.innerHTML='';
   rows.forEach(lead=>{
     const units=lead.units||1;
-    const pn=parseFloat((lead.price||'').replace(/[^0-9.]/g,''))||SELL;
+    const pnMatch=String(lead.price||'').match(/\d+(\.\d+)?/);const pn=(pnMatch&&parseFloat(pnMatch[0])>0&&parseFloat(pnMatch[0])<100000)?parseFloat(pnMatch[0]):SELL;
     const margin=pn-COST;
     const priceStr=units>1?`$${pn} × ${units} = $${pn*units} (+$${margin.toFixed(2)}/ea)`:`$${pn} (+$${margin.toFixed(2)})`;
     const bMap={pending:'sb-pending ⏳ Pending',scheduled:'sb-scheduled 📅 Scheduled',sold:'sb-sold ✅ Sold',cancelled:'sb-cancelled ❌ Cancelled'};
@@ -693,7 +869,7 @@ function renderTable(){
       <td><div class="meetup-main">${lead.meetup||'TBD — buyer picking up'}</div><div class="meetup-time">${dtStr}</div></td>
       <td>${badge}</td>
       <td><div class="notes-cell">${lead.notes||'—'}</div></td>
-      <td><div class="act-btns"><button class="act-btn" onclick="editLead(${lead.id})">Edit</button>${lead.chat_link ? `<a class="act-btn" href="${lead.chat_link}" target="_blank" style="text-decoration:none;">💬 Chat</a>` : ""}<button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button></div></td>`;
+      <td><div class="act-btns"><button class="act-btn" onclick="editLead(${lead.id})">Edit</button><button class="act-btn" onclick="addToCalendar(${lead.id})">📅</button>${lead.chat_link ? `<a class="act-btn" href="${lead.chat_link}" target="_blank" style="text-decoration:none;">💬 Chat</a>` : ""}<button class="act-btn danger" onclick="deleteLead(${lead.id})">Remove</button></div></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -972,44 +1148,52 @@ async function importAndReplace(e) {
       let data = JSON.parse(ev.target.result);
       const arr = Array.isArray(data) ? data : (data.leads || []);
       if (!arr.length) { toast('No leads found in file'); return; }
-      if (!confirm(`This will DELETE all ${leads.length} current leads and replace with ${arr.length} new leads from the file. Continue?`)) return;
+      if (!confirm('Replace ALL current leads with ' + arr.length + ' leads from this file? Cannot be undone.')) return;
+
       prog.style.display = 'block';
-      progText.textContent = 'Step 1/3 — Clearing existing leads from cloud…';
+      progText.textContent = 'Step 1/3 — Clearing existing leads…';
       setSyncState('syncing', 'Clearing…');
-      // Delete all existing leads
-      if (leads.length > 0) {
-        await fetch(`${SUPA_URL}/rest/v1/leads?id=gte.0`, {
-          method: 'DELETE',
-          headers: { ...HEADERS, 'Prefer': 'return=minimal' }
-        });
-      }
+
+      // Delete all leads — use a filter that matches everything
+      await fetch(SUPA_URL + '/rest/v1/leads?name=neq.___IMPOSSIBLE___XYZ', {
+        method: 'DELETE',
+        headers: Object.assign({}, HEADERS, {'Prefer': 'return=minimal'})
+      });
       leads = [];
-      progText.textContent = `Step 2/3 — Uploading ${arr.length} leads to cloud…`;
-      // Insert all new leads in batches of 10
-      const batchSize = 10;
+
+      progText.textContent = 'Step 2/3 — Uploading ' + arr.length + ' leads…';
+
+      // Insert in small batches
+      const batchSize = 5;
       for (let i = 0; i < arr.length; i += batchSize) {
-        const batch = arr.slice(i, i + batchSize).map((lead, j) => cleanLead(lead, i + j));
-        progText.textContent = `Step 2/3 — Uploading leads ${i+1}–${Math.min(i+batchSize, arr.length)} of ${arr.length}…`;
-        const res = await fetch(`${SUPA_URL}/rest/v1/leads`, {
+        const batch = arr.slice(i, i + batchSize).map(function(lead, j) { return cleanLead(lead, i + j); });
+        progText.textContent = 'Step 2/3 — Saving ' + (i+1) + '–' + Math.min(i+batchSize, arr.length) + ' of ' + arr.length + '…';
+        const res = await fetch(SUPA_URL + '/rest/v1/leads', {
           method: 'POST',
           headers: HEADERS,
           body: JSON.stringify(batch)
         });
-        if (res.ok) {
-          const saved = await res.json();
-          leads.push(...(saved || batch));
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('Batch ' + i + ' failed:', errText);
         }
+        await new Promise(function(resolve) { setTimeout(resolve, 200); });
       }
-      progText.textContent = 'Step 3/3 — Done!';
-      setSyncState('live', 'Live ●');
-      renderTable(); renderStats();
-      setTimeout(() => { prog.style.display = 'none'; }, 2000);
-      toast(`✓ Replaced all leads — ${arr.length} loaded from file`);
+
+      // Step 3: reload fresh from Supabase so dashboard shows real data
+      progText.textContent = 'Step 3/3 — Loading dashboard…';
+      leads = await dbGet('leads');
+      renderTable();
+      renderStats();
+      switchPage('dashboard');
+      setSyncState('live', 'Live \u25cf');
+      setTimeout(function() { prog.style.display = 'none'; }, 2000);
+      toast('\u2713 ' + leads.length + ' leads loaded to dashboard');
     } catch(err) {
-      console.error(err);
+      console.error('Import error:', err);
       prog.style.display = 'none';
       setSyncState('error', 'Import failed');
-      toast('Import failed — check JSON format');
+      toast('Import failed: ' + err.message);
     }
   };
   r.readAsText(file);
@@ -1061,6 +1245,7 @@ async function loadAll(){
 }
 
 // ── Init ──
+updateGCalUI();
 const k=localStorage.getItem('rs_apikey');
 if(k)document.getElementById('api-key-input').value=k;
 document.getElementById('tn-date').textContent=new Date().toLocaleDateString([],{weekday:'short',month:'short',day:'numeric',year:'numeric'});
