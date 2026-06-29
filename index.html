@@ -410,22 +410,25 @@ select.fi{cursor:pointer;}
       <div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0f2f5;">
         <div style="font-size:11px;font-weight:700;color:#65676b;letter-spacing:.06em;margin-bottom:8px;">LEADS TABLE SCHEMA</div>
         <div style="background:#f9fafb;border:1px solid #e4e6ea;border-radius:8px;padding:12px;font-size:11px;font-family:monospace;line-height:1.8;color:#3c4043;overflow-x:auto;">
-<span style="color:#1877f2;">// Primary key (bigint, required)</span><br>
-id: number (e.g. 1748000000001)<br><br>
-<span style="color:#1877f2;">// Required fields</span><br>
+<span style="color:#16a34a;">// Unique key (text, preferred — auto-parsed from chat_link)</span><br>
+thread_id: string — digits from messenger.com/marketplace/t/&lt;thread_id&gt;/<br><br>
+<span style="color:#1877f2;">// Primary key (bigint — auto-derived from thread_id if present)</span><br>
+id: number — optional if thread_id or chat_link provided<br><br>
+<span style="color:#ef4444;">// Required fields</span><br>
 name: string — buyer full name<br>
 status: "pending" | "scheduled" | "sold" | "cancelled"<br><br>
 <span style="color:#1877f2;">// Optional fields</span><br>
 source: string — default "Facebook Marketplace"<br>
 item: string — default "Storage Racks"<br>
-price: string — e.g. "$75" or "$60" (per unit)<br>
+price: string — e.g. "$75" or "$60" (per unit, not total)<br>
 units: number — quantity buyer wants<br>
 meetup: string — e.g. "TBD — buyer picking up"<br>
-datetime: string — ISO format "2026-07-05T12:00" or ""<br>
+datetime: string — ISO "2026-07-05T12:00" or omit<br>
 notes: string — conversation details<br>
 suggested_reply: string — reply script<br>
-chat_link: string — messenger URL<br>
-added_at: string — e.g. "6/28/2026, 12:00:00 PM"
+chat_link: string — full messenger URL (thread_id auto-extracted)<br>
+added_at: string — e.g. "6/28/2026, 12:00:00 PM"<br><br>
+<span style="color:#92400e;">// Upsert logic: thread_id → id → error if neither present</span>
         </div>
       </div>
     </div>
@@ -1295,11 +1298,29 @@ function exportCSV(){
   a.download=`rackscout-leads-${Date.now()}.csv`;a.click();toast('✓ CSV exported');
 }
 // Clean a lead row before sending to Supabase
+// Extract thread_id from a Messenger chat_link URL
+// e.g. "https://www.messenger.com/marketplace/t/1331877661639999/" → "1331877661639999"
+function extractThreadId(lead) {
+  if (lead.thread_id) return String(lead.thread_id);
+  if (lead.chat_link) {
+    const match = String(lead.chat_link).match(/\/t\/(\d+)/);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 function cleanLead(lead, index) {
-  // Remap large IDs to safe sequential numbers
-  const safeId = index !== undefined ? (1748000000000 + index + 1) : (Date.now() + Math.floor(Math.random()*9999));
+  const threadId = extractThreadId(lead);
+  // Derive a stable numeric id from thread_id if possible, else use sequential
+  let safeId;
+  if (threadId && !isNaN(Number(threadId)) && Number(threadId) < Number.MAX_SAFE_INTEGER) {
+    safeId = Number(threadId);
+  } else {
+    safeId = index !== undefined ? (1748000000000 + index + 1) : (Date.now() + Math.floor(Math.random()*9999));
+  }
   return {
     id: safeId,
+    thread_id: threadId,
     name: lead.name || 'Unknown',
     source: lead.source || 'Facebook Marketplace',
     item: lead.item || 'Storage Racks',
@@ -1701,27 +1722,46 @@ function saveCostSettings() {
 // Schema validation
 function validateLead(lead) {
   const errors = [];
-  if (lead.id === undefined || lead.id === null) errors.push('missing id');
+  // Require either id or chat_link/thread_id — one must be present for upsert to work
+  const hasId = lead.id !== undefined && lead.id !== null;
+  const hasThreadKey = lead.thread_id || (lead.chat_link && String(lead.chat_link).match(/\/t\/(\d+)/));
+  if (!hasId && !hasThreadKey) errors.push('missing id and no thread_id/chat_link to derive one from');
   if (!lead.name || typeof lead.name !== 'string') errors.push('missing/invalid name');
   const validStatuses = ['pending','scheduled','sold','cancelled'];
   if (lead.status && !validStatuses.includes(lead.status)) errors.push('invalid status: ' + lead.status);
   return errors;
 }
 
-// Core upsert function — idempotent on id
-async function upsertLead(lead) {
-  const clean = cleanLead(lead, 0);
-  // Use Supabase upsert (INSERT ... ON CONFLICT DO UPDATE)
-  const res = await fetch(SUPA_URL + '/rest/v1/leads', {
-    method: 'POST',
-    headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
-    body: JSON.stringify(clean)
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
+// Core upsert function — idempotent on thread_id (preferred) or id
+async function upsertLead(lead, index) {
+  const clean = cleanLead(lead, index);
+  const threadId = clean.thread_id;
+
+  if (threadId) {
+    // Upsert on thread_id — guaranteed stable across runs
+    const res = await fetch(SUPA_URL + '/rest/v1/leads?on_conflict=thread_id', {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
+      body: JSON.stringify(clean)
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    return await res.json();
+  } else {
+    // Fallback: upsert on id for leads without a thread_id
+    const res = await fetch(SUPA_URL + '/rest/v1/leads?on_conflict=id', {
+      method: 'POST',
+      headers: Object.assign({}, HEADERS, {'Prefer': 'resolution=merge-duplicates,return=representation'}),
+      body: JSON.stringify(clean)
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
+    return await res.json();
   }
-  return await res.json();
 }
 
 // Global function — callable by automation: window.importLeadsFromJSON(jsonString)
@@ -1746,6 +1786,8 @@ window.importLeadsFromJSON = async function(jsonString) {
   }
 
   // Validate and upsert each lead
+  // Build lookup sets for both thread_id and id to detect existing rows
+  const existingThreadIds = new Set(leads.map(l => l.thread_id).filter(Boolean).map(String));
   const existingIds = new Set(leads.map(l => String(l.id)));
 
   for (let i = 0; i < arr.length; i++) {
@@ -1756,17 +1798,26 @@ window.importLeadsFromJSON = async function(jsonString) {
       continue;
     }
     try {
-      const saved = await upsertLead(lead);
-      const wasExisting = existingIds.has(String(lead.id));
+      const saved = await upsertLead(lead, i);
+      const savedRow = (saved && saved[0]) || cleanLead(lead, i);
+      const tid = extractThreadId(lead);
+
+      // Determine if this was an update or insert
+      const wasExisting = (tid && existingThreadIds.has(String(tid))) ||
+                          (!tid && existingIds.has(String(lead.id)));
+
       if (wasExisting) {
         result.updated++;
-        // Update in local state
-        const idx = leads.findIndex(l => String(l.id) === String(lead.id));
-        if (idx >= 0) leads[idx] = (saved && saved[0]) || cleanLead(lead, i);
+        // Update in local state — match by thread_id first, then id
+        const idx = tid
+          ? leads.findIndex(l => l.thread_id && String(l.thread_id) === String(tid))
+          : leads.findIndex(l => String(l.id) === String(lead.id));
+        if (idx >= 0) leads[idx] = savedRow;
       } else {
         result.inserted++;
-        leads.unshift((saved && saved[0]) || cleanLead(lead, i));
-        existingIds.add(String(lead.id));
+        leads.unshift(savedRow);
+        if (tid) existingThreadIds.add(String(tid));
+        existingIds.add(String(savedRow.id));
       }
     } catch(e) {
       result.errors.push('Row ' + i + ' (' + (lead.name||'?') + '): ' + e.message);
